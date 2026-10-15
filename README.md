@@ -24,7 +24,7 @@ uniqueness of the minimising ordered input. See
 
 ## Build and verification
 
-The project uses **Lean 4.34.0 / Mathlib v4.34.0**. `lean-toolchain` selects
+The project uses **Lean 4.35.0 / Mathlib v4.35.0**. `lean-toolchain` selects
 Lean, and `lake-manifest.json` pins Mathlib and its transitive dependencies.
 Install [elan, the Lean version manager](https://github.com/leanprover/elan#installation)
 if needed. On Linux or macOS:
