@@ -1,5 +1,9 @@
-import Lsbgcd.Frontier
-import Lsbgcd.Reduction
+module
+
+public import Lsbgcd.Frontier
+public import Lsbgcd.Reduction
+
+@[expose] public section
 
 /-!
 # The sum-of-squares conjecture at the end of §6

@@ -1,6 +1,10 @@
-import Lsbgcd.RamharterWeighted
-import Lsbgcd.RamharterMatrix
-import Lsbgcd.RamharterMode
+module
+
+public import Lsbgcd.RamharterWeighted
+public import Lsbgcd.RamharterMatrix
+public import Lsbgcd.RamharterMode
+
+@[expose] public section
 
 /-! # Extremal endpoints of weighted permutation minima -/
 namespace Lsbgcd

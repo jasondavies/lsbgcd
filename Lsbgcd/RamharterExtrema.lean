@@ -1,5 +1,9 @@
-import Lsbgcd.Ramharter
-import Lsbgcd.ContinuantOrder
+module
+
+public import Lsbgcd.Ramharter
+public import Lsbgcd.ContinuantOrder
+
+@[expose] public section
 
 /-! # Necessary endpoint conditions for the general permutation minimum -/
 namespace Lsbgcd

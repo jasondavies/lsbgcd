@@ -1,4 +1,8 @@
-import Lsbgcd.Candidates
+module
+
+public import Lsbgcd.Candidates
+
+@[expose] public section
 
 /-! # Balancing the two alternating blocks in the even extremal words -/
 namespace Lsbgcd

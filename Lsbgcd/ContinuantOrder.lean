@@ -1,4 +1,8 @@
-import Lsbgcd.Continuants
+module
+
+public import Lsbgcd.Continuants
+
+@[expose] public section
 
 /-!
 # Order and exchange facts for positive continuants

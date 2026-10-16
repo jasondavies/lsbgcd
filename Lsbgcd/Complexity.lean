@@ -1,4 +1,8 @@
-import Lsbgcd.Algorithm
+module
+
+public import Lsbgcd.Algorithm
+
+@[expose] public section
 
 /-!
 # Unconditional iteration bounds

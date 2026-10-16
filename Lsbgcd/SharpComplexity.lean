@@ -1,6 +1,10 @@
-import Lsbgcd.Complexity
-import Lsbgcd.ClosedForms
-import Lsbgcd.Minimality
+module
+
+public import Lsbgcd.Complexity
+public import Lsbgcd.ClosedForms
+public import Lsbgcd.Minimality
+
+@[expose] public section
 
 /-!
 # The sharp logarithmic coefficient

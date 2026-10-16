@@ -1,6 +1,10 @@
-import Lsbgcd.RamharterFinite
-import Lsbgcd.RamharterWeighted
-import Lsbgcd.RamharterShape
+module
+
+public import Lsbgcd.RamharterFinite
+public import Lsbgcd.RamharterWeighted
+public import Lsbgcd.RamharterShape
+
+@[expose] public section
 
 /-! # Logical steps for the alternating permutation-minimum induction -/
 namespace Lsbgcd

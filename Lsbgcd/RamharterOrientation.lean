@@ -1,5 +1,9 @@
-import Lsbgcd.RamharterWeighted
-import Lsbgcd.RamharterMode
+module
+
+public import Lsbgcd.RamharterWeighted
+public import Lsbgcd.RamharterMode
+
+@[expose] public section
 
 /-! # Endpoint orientation for the alternating weighted minimum -/
 namespace Lsbgcd

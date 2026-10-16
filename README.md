@@ -58,6 +58,33 @@ Any failed step makes the script exit with a nonzero status. Once Lean and the
 project dependencies are installed, verification runs locally without uploading
 source. For compilation alone, use `lake build`.
 
+## Palomar statement surface
+
+The repository is laid out for the [Palomar registry](https://palomar-registry.org/)
+([submission form](https://submit.palomar-registry.org/)).
+[`Challenge.lean`](Challenge.lean) is a short, Mathlib-only statement file to
+audit: it defines the algorithm and states gcd correctness, Theorem 1.1,
+Theorem 5.1, the §7 bound and the sum-of-squares theorem, each with `sorry`.
+[`Solution.lean`](Solution.lean) proves the same declarations from the library.
+[`comparator.json`](comparator.json) lists them, and
+[`formalization.yaml`](formalization.yaml) records provenance, scope and
+divergences from the paper.
+
+`lake comparator` checks that every listed theorem has the same statement in
+both modules, that the definitions they use are identical constants, and that
+the proofs use only `propext`, `Classical.choice` and `Quot.sound`. It needs
+`bwrap` (bubblewrap) on Linux:
+
+```sh
+python3 scripts/check-lean-sources.py   # module headers and file sizes
+./scripts/verify-comparator.sh          # Lean, nanoda and con-ron kernels
+ruby scripts/validate-formalization.rb  # metadata
+```
+
+Every source file uses the Lean module system, as Palomar requires.
+`check-lean-sources.py` scans the whole working tree, so it also reports any
+stray `.lean` files under the ignored `build/` directory.
+
 ## Paper correspondence
 
 All declarations below are in namespace `Lsbgcd`.

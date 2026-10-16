@@ -1,4 +1,8 @@
-import Mathlib
+module
+
+public import Mathlib
+
+@[expose] public section
 
 /-! # Continuants and continued-fraction numerators (§5) -/
 namespace Lsbgcd

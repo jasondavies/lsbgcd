@@ -1,4 +1,8 @@
-import Lsbgcd.RamharterBoundary
+module
+
+public import Lsbgcd.RamharterBoundary
+
+@[expose] public section
 
 /-! # Alternating endpoint choices in the general permutation proof -/
 namespace Lsbgcd

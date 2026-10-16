@@ -1,6 +1,10 @@
-import Lsbgcd.RamharterSortingCore
-import Lsbgcd.RamharterWeightedExtrema
-import Lsbgcd.RamharterOrientation
+module
+
+public import Lsbgcd.RamharterSortingCore
+public import Lsbgcd.RamharterWeightedExtrema
+public import Lsbgcd.RamharterOrientation
+
+@[expose] public section
 
 /-!
 # General Ramharter permutation minimum

@@ -1,4 +1,8 @@
-import Lsbgcd.Validity
+module
+
+public import Lsbgcd.Validity
+
+@[expose] public section
 
 /-!
 # Reduction of arbitrary partial computations (Theorem 4.3)

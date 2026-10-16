@@ -1,4 +1,8 @@
-import Lsbgcd.Words
+module
+
+public import Lsbgcd.Words
+
+@[expose] public section
 
 /-!
 # Valid partial computations (§3)

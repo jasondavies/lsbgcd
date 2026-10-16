@@ -1,0 +1,19 @@
+{
+  "challenge_module": "Challenge",
+  "solution_module": "Solution",
+  "theorem_names": [
+    "Lsbgcd.gcd_correct",
+    "Lsbgcd.isWorstCase_unique",
+    "Lsbgcd.worstCase_odd",
+    "Lsbgcd.worstCase_four_mul",
+    "Lsbgcd.worstCase_four_mul_add_two",
+    "Lsbgcd.worstCase_order16",
+    "Lsbgcd.theorem5_1",
+    "Lsbgcd.iterations_le_sharp_log",
+    "Lsbgcd.sum_squares_conjecture",
+    "Lsbgcd.sum_squares_minimizer_eq"
+  ],
+  "definition_names": [],
+  "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
+  "enable_nanoda": true
+}

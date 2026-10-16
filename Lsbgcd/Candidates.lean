@@ -1,5 +1,9 @@
-import Lsbgcd.Words
-import Lsbgcd.Recurrences
+module
+
+public import Lsbgcd.Words
+public import Lsbgcd.Recurrences
+
+@[expose] public section
 
 /-!
 # The worst-case input sequences (§§5–6)

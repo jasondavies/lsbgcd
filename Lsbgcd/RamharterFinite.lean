@@ -1,4 +1,8 @@
-import Lsbgcd.Ramharter
+module
+
+public import Lsbgcd.Ramharter
+
+@[expose] public section
 
 /-! # Finite minimization and the outer-digit step for Ramharter sorting -/
 namespace Lsbgcd

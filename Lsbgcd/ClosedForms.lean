@@ -1,4 +1,8 @@
-import Lsbgcd.MainRecurrence
+module
+
+public import Lsbgcd.MainRecurrence
+
+@[expose] public section
 
 /-! # Closed forms for the candidate sequences (Theorem 1.1) -/
 namespace Lsbgcd

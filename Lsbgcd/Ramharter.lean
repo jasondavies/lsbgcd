@@ -1,4 +1,8 @@
-import Lsbgcd.Continuants
+module
+
+public import Lsbgcd.Continuants
+
+@[expose] public section
 
 /-!
 # The general permutation theorem quoted as Theorem 5.1

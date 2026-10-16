@@ -1,4 +1,8 @@
-import Lsbgcd.ContinuantOrder
+module
+
+public import Lsbgcd.ContinuantOrder
+
+@[expose] public section
 
 /-!
 # Weighted continuants for the Ramharter induction

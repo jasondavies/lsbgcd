@@ -1,5 +1,9 @@
-import Lsbgcd.SumSquares
-import Lsbgcd.PaperCorollaries
+module
+
+public import Lsbgcd.SumSquares
+public import Lsbgcd.PaperCorollaries
+
+@[expose] public section
 
 /-!
 # The continued-fraction bridge for the sum-of-squares conjecture

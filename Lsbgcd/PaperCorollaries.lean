@@ -1,8 +1,12 @@
-import Lsbgcd.Minimality
-import Lsbgcd.Computation
-import Lsbgcd.Examples
-import Lsbgcd.EuclideanComparison
-import Lsbgcd.ContinuantOrder
+module
+
+public import Lsbgcd.Minimality
+public import Lsbgcd.Computation
+public import Lsbgcd.Examples
+public import Lsbgcd.EuclideanComparison
+public import Lsbgcd.ContinuantOrder
+
+@[expose] public section
 
 /-!
 # Further statements from the paper

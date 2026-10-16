@@ -1,4 +1,8 @@
-import Lsbgcd.BinaryImplementation
+module
+
+public import Lsbgcd.BinaryImplementation
+
+@[expose] public section
 
 /-!
 # Binary primitive cost accounting

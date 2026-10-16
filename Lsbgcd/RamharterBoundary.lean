@@ -1,4 +1,8 @@
-import Lsbgcd.ContinuantOrder
+module
+
+public import Lsbgcd.ContinuantOrder
+
+@[expose] public section
 
 /-!
 # Alternating boundary inequalities for continuant minimisation

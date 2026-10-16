@@ -1,4 +1,8 @@
-import Lsbgcd.Specification
+module
+
+public import Lsbgcd.Specification
+
+@[expose] public section
 
 /-! # The order-16 recurrence for the candidate sequences -/
 namespace Lsbgcd

@@ -1,4 +1,8 @@
-import Lsbgcd.Continuants
+module
+
+public import Lsbgcd.Continuants
+
+@[expose] public section
 
 /-! # Matrix calculations from §6 -/
 namespace Lsbgcd

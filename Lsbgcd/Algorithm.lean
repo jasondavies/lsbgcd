@@ -1,4 +1,8 @@
-import Mathlib
+module
+
+public import Mathlib
+
+@[expose] public section
 
 /-!
 # The LSBGCD algorithm
@@ -16,9 +20,8 @@ def shift (u v : ℕ) : ℕ := Nat.log 2 (u / v)
 
 theorem shift_bounds {u v : ℕ} (hv : 0 < v) (hvu : v ≤ u) :
     2 ^ shift u v * v ≤ u ∧ u < 2 ^ (shift u v + 1) * v := by
-  have hq : u / v ≠ 0 := by
-    have : 1 ≤ u / v := (Nat.le_div_iff_mul_le hv).2 (by simpa using hvu)
-    omega
+  have hq : u / v ≠ 0 :=
+    Nat.one_le_iff_ne_zero.mp ((Nat.le_div_iff_mul_le hv).2 (by simpa using hvu))
   constructor
   · exact (Nat.le_div_iff_mul_le hv).1 (Nat.pow_log_le_self 2 hq)
   · exact (Nat.div_lt_iff_lt_mul hv).1 (Nat.lt_pow_succ_log_self (by decide) _)
@@ -34,8 +37,8 @@ def step (u v : ℕ) : ℕ × ℕ :=
 theorem remainder_lt {u v : ℕ} (hv : 0 < v) (hvu : v ≤ u) :
     remainder u v < u := by
   have hb := (shift_bounds hv hvu).1
-  have hp : 0 < 2 ^ shift u v * v := Nat.mul_pos (by positivity) hv
-  exact lt_of_le_of_lt (min_le_left _ _) (by omega)
+  have hp : 0 < 2 ^ shift u v * v := Nat.mul_pos (Nat.pow_pos (by decide)) hv
+  exact lt_of_le_of_lt (min_le_left _ _) (Nat.sub_lt (lt_of_lt_of_le hp hb) hp)
 
 theorem step_ordered (u v : ℕ) : (step u v).2 ≤ (step u v).1 :=
   le_trans (min_le_left _ _) (le_max_left _ _)
@@ -44,7 +47,8 @@ theorem step_decreases {u v : ℕ} (hv : 0 < v) (hvu : v ≤ u) :
     (step u v).1 + (step u v).2 < u + v := by
   have h := remainder_lt hv hvu
   simp only [step, max_add_min]
-  omega
+  rw [Nat.add_comm u v]
+  exact Nat.add_lt_add_left h v
 
 theorem gcd_remainder {u v : ℕ} (hv : 0 < v) (hvu : v ≤ u) :
     Nat.gcd v (remainder u v) = Nat.gcd u v := by

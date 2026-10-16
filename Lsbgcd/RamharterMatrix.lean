@@ -1,4 +1,8 @@
-import Lsbgcd.RamharterBoundary
+module
+
+public import Lsbgcd.RamharterBoundary
+
+@[expose] public section
 
 /-! # Matrix evaluation of continued fractions with a rational boundary -/
 namespace Lsbgcd

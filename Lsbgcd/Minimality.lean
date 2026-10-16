@@ -1,6 +1,10 @@
-import Lsbgcd.Frontier
-import Lsbgcd.Balancing
-import Lsbgcd.Reduction
+module
+
+public import Lsbgcd.Frontier
+public import Lsbgcd.Balancing
+public import Lsbgcd.Reduction
+
+@[expose] public section
 
 /-!
 # Global minimality and Theorem 1.1

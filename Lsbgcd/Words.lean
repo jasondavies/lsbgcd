@@ -1,5 +1,9 @@
-import Lsbgcd.Steps
-import Lsbgcd.Continuants
+module
+
+public import Lsbgcd.Steps
+public import Lsbgcd.Continuants
+
+@[expose] public section
 
 /-! # Valid continued-fraction words and exact iteration counts (§§3,5) -/
 namespace Lsbgcd

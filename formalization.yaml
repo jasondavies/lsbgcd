@@ -1,0 +1,207 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
+version: "v0.4"
+
+project:
+  name: "Analysis of a left-shift binary GCD algorithm (Shallit–Sorenson 1994), with a proof of its sum-of-squares conjecture"
+  description: >-
+    A complete Lean 4 formalization of Jeffrey Shallit and Jonathan Sorenson,
+    "Analysis of a Left-Shift Binary GCD Algorithm" (J. Symbolic Computation
+    17, 1994). LSBGCD replaces (u, v) by v and the distance from u to the
+    nearer of the shifted multiples 2^e v and 2^(e+1) v, where
+    2^e v ≤ u < 2^(e+1) v. The formalization proves that the algorithm
+    computes the gcd, and proves Theorem 1.1: for every n, the
+    lexicographically least ordered input taking exactly n iterations, its
+    six closed forms in powers of 2 ± √3, and the order-16 linear recurrence
+    satisfied by both coordinates. It proves in full generality Ramharter's
+    theorem on continuant-minimising permutations (Theorem 5.1, quoted in the
+    paper from Ramharter 1983), for arbitrary positive digits with repetition
+    and with uniqueness up to reversal. It also proves the paper's binary
+    minimiser classification (Theorem 5.2) and the sharp logarithmic
+    iteration bound of §7 with an explicit additive constant. In addition it
+    proves the sum-of-squares conjecture stated without proof at the end of
+    §6: for n ≥ 2, among ordered positive inputs taking exactly n
+    iterations, u² + v² is uniquely minimised by consecutive terms of the
+    printed recurrence, which are denominators of convergents to √3. A
+    limited literature search found no earlier proof of this conjecture, but
+    its novelty has not been established.
+  authors:
+    - "Jason Davies"
+  license: "Apache-2.0"
+  responsible_maintainers:
+    - "Jason Davies"
+
+classification:
+  arxiv: ["math.NT", "cs.DS"]
+  msc2020: ["11A05", "11Y16", "11A55", "68W40", "05A05"]
+
+sources:
+  - title: "Analysis of a Left-Shift Binary GCD Algorithm"
+    authors:
+      - "Jeffrey Shallit"
+      - "Jonathan Sorenson"
+    id: "doi:10.1006/jsco.1994.1030"
+    type: "paper"
+    location: "Journal of Symbolic Computation 17 (1994), 473–486"
+    relationship: formalizes
+    note: >-
+      All numbered results are formalized. The sum-of-squares statement at
+      the end of §6 is posed there as a conjecture; this repository proves
+      it, and that proof is new to this formalization, not a formalization
+      of an argument in the paper.
+    license: "unknown"
+    author_endorsement: not-contacted
+  - title: "Extremal values of continuants"
+    authors:
+      - "Gerhard Ramharter"
+    id: "doi:10.1090/S0002-9939-1983-0712621-7"
+    type: "paper"
+    location: "Proceedings of the American Mathematical Society 89 (1983), 189–201"
+    relationship: formalizes
+    note: >-
+      Source of the permutation theorem that Shallit and Sorenson quote as
+      Theorem 5.1. The statement is formalized as Shallit and Sorenson quote
+      it; the Lean proof, an interval-reversal and endpoint-exchange
+      induction, is described in the README.
+    license: "unknown"
+    author_endorsement: not-contacted
+
+related_formalizations: []
+
+status:
+  scope: >-
+    Formalized: the algorithm of §1 and its correctness; the transformations,
+    lemmas and theorems of §§2–4 (Lemmas 3.1–3.2, Theorem 3.3, Corollary 3.4,
+    Lemma 3.5, Lemmas 4.1–4.2, Theorem 4.3); continuants and the matrix
+    identities of §§5–6; Theorem 5.1 in general; Theorem 5.2; Theorem 1.1
+    (global minimality, the order-16 recurrence and all six closed forms);
+    the §7 iteration bound with coefficient 1 / log₂ √(2 + √3) and an
+    explicit additive constant; the Euclidean comparison of §7; all twenty
+    pairs of Table 1 and the worked (47, 40) trace; and the sum-of-squares
+    conjecture with uniqueness, including convergence of the associated
+    continued fractions to √3. The compared statements in Challenge.lean are
+    algorithm correctness, Theorem 1.1, Theorem 5.1, the §7 bound and the
+    sum-of-squares theorem; the remaining results are proved in the library.
+    Not formalized: the empirical timing and average-iteration tables of §7.
+    The bit-complexity bound concerns an explicit bit-scan cost model in
+    BitCost.lean, not running time on hardware.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms: []
+  main_results:
+    - "Correctness of LSBGCD"
+    - "Theorem 1.1: worst-case inputs, closed forms and order-16 recurrence"
+    - "Theorem 5.1: Ramharter's continuant-minimising permutations, in general"
+    - "Sharp logarithmic iteration bound (§7)"
+    - "Sum-of-squares conjecture (end of §6), with uniqueness"
+
+automation:
+  methods:
+    - method: agent
+      models: ["gpt-6-astra"]
+      tool_setup: >-
+        The Lean development (definitions, statements and proofs) was written
+        entirely by GPT-6-Astra; the human author chose the paper and directed
+        the work.
+    - method: agent
+      models: ["claude-opus-5-5"]
+      framework: "Claude Code"
+      tool_setup: >-
+        Palomar packaging only: ported every source file to the Lean module
+        system, wrote Challenge.lean, Solution.lean, comparator.json and this
+        file, and rewrote the proofs of four termination lemmas in
+        Lsbgcd/Algorithm.lean as term proofs (replacing `omega`) so that
+        Comparator sees identical constants in Challenge and Solution. No
+        mathematical content of the development was changed.
+  notes: >-
+    All Lean code was produced by AI agents. The human author selected the
+    source and directed the agents. The results are checked mechanically by
+    Lean's kernel, an axiom audit and lake comparator, which run in CI.
+
+fidelity:
+  divergences: >-
+    Inputs are natural numbers. `run` follows the pseudocode on ordered
+    inputs, choosing A on a tie; `gcd` and `iterations` sort their arguments
+    first. Worst-case inputs must have a positive first coordinate, so the
+    zero-iteration minimum is (1, 0), which matches the closed forms at
+    n = 0; allowing (0, 0) would make it the minimum instead. Theorem 1.1's
+    minimality is stated lexicographically: least first coordinate, then
+    least second coordinate. The paper's three-case displayed permutation in
+    Theorem 5.1 is represented by `ramharterIndices`, which strips the two
+    least and two greatest remaining ranks at each step; `ramharterWord`
+    uses `getD` for totality, but every rank is in range. The swapped rows
+    of Theorem 3.3 need the strict hypothesis x > y, because the algorithm
+    interchanges only on strict inequality; the printed x ≥ y is
+    insufficient, as the paper's proof itself notes. For the sum-of-squares
+    conjecture, the prose on p. 484 calls pₙ the numerator of a convergent
+    to √3, but the printed recurrence (1, 3, 4, 11, 15, 41, …) gives the
+    denominators of the convergents [1; 1], [1; 1, 2], [1; 1, 2, 1], …; the
+    theorem follows the printed recurrence, and the denominator identity is
+    proved separately. The sum-of-squares theorem is stated for n ≥ 2 and
+    positive second input; the one-iteration minimum is (1, 1). Inequalities
+    involving 2^(e−1) are written 2y ≤ 2^e x, which also covers e = 0.
+
+review:
+  status: "self-assessed"
+  reviewers: []
+  notes: >-
+    Self-assessed by the author; there has been no independent human review.
+    Mechanical checks: lake build, leanchecker replay of every project
+    declaration, an axiom audit of every project declaration including
+    private ones (only propext, Classical.choice and Quot.sound), and lake
+    comparator with the Lean, nanoda and con-ron kernels.
+
+alignment:
+  namespace: "Lsbgcd"
+  statements:
+    - source: "§1, algorithm correctness"
+      lean: "Lsbgcd.gcd_correct"
+      module: "Challenge"
+      status: "proved"
+      note: "The algorithm returns Nat.gcd u v for all natural inputs."
+    - source: "Theorem 1.1, least input taking n iterations"
+      lean: "Lsbgcd.isWorstCase_unique"
+      module: "Challenge"
+      status: "proved"
+      note: "The lexicographically least input is unique, so (xₙ, yₙ) is well defined."
+    - source: "Theorem 1.1, closed forms for n odd"
+      lean: "Lsbgcd.worstCase_odd"
+      module: "Challenge"
+      status: "proved"
+      note: "Existence of the least input taking 2n + 1 iterations, with both coordinates in closed form."
+    - source: "Theorem 1.1, closed forms for n ≡ 0 (mod 4)"
+      lean: "Lsbgcd.worstCase_four_mul"
+      module: "Challenge"
+      status: "proved"
+      note: "Includes n = 0, where the least input is (1, 0)."
+    - source: "Theorem 1.1, closed forms for n ≡ 2 (mod 4)"
+      lean: "Lsbgcd.worstCase_four_mul_add_two"
+      module: "Challenge"
+      status: "proved"
+      note: "The three closed-form theorems together cover every n."
+    - source: "Theorem 1.1, order-16 recurrence"
+      lean: "Lsbgcd.worstCase_order16"
+      module: "Challenge"
+      status: "proved"
+      note: "Stated for any sequences that are the worst cases for every n; such sequences exist by the closed-form theorems."
+    - source: "Theorem 5.1 (Ramharter 1983)"
+      lean: "Lsbgcd.theorem5_1"
+      module: "Challenge"
+      status: "proved"
+      note: "General positive digits with repetition; minimality over all permutations and uniqueness up to reversal."
+    - source: "§7, sharp iteration bound"
+      lean: "Lsbgcd.iterations_le_sharp_log"
+      module: "Challenge"
+      status: "proved"
+      note: "Coefficient 2 / log(2 + √3) = 1 / log₂ √(2 + √3), with additive constant 2 log 3 / log(2 + √3) + 1."
+    - source: "End of §6, sum-of-squares conjecture"
+      lean: "Lsbgcd.sum_squares_conjecture"
+      module: "Challenge"
+      status: "proved"
+      note: "Conjectured in the paper; the proof is new to this formalization."
+    - source: "End of §6, sum-of-squares conjecture (uniqueness)"
+      lean: "Lsbgcd.sum_squares_minimizer_eq"
+      module: "Challenge"
+      status: "proved"
+      note: "Uniqueness is not stated in the paper and is proved here."
+
+acknowledgements: "Built on Lean 4 and Mathlib."

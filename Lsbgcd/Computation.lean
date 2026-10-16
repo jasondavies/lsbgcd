@@ -1,4 +1,8 @@
-import Lsbgcd.PartialReduction
+module
+
+public import Lsbgcd.PartialReduction
+
+@[expose] public section
 
 /-!
 # Partial computations and the executable algorithm

@@ -1,4 +1,8 @@
-import Lsbgcd.Ramharter
+module
+
+public import Lsbgcd.Ramharter
+
+@[expose] public section
 
 /-! # Structural equations for the general Ramharter arrangement -/
 namespace Lsbgcd

@@ -1,4 +1,8 @@
-import Lsbgcd.Algorithm
+module
+
+public import Lsbgcd.Algorithm
+
+@[expose] public section
 
 /-!
 # Transformations and their domains (§§2–4)

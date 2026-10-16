@@ -1,4 +1,8 @@
-import Lsbgcd.Complexity
+module
+
+public import Lsbgcd.Complexity
+
+@[expose] public section
 
 /-!
 # Selecting the shift from binary lengths

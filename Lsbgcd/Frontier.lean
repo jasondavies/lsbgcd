@@ -1,4 +1,8 @@
-import Lsbgcd.Candidates
+module
+
+public import Lsbgcd.Candidates
+
+@[expose] public section
 
 /-!
 # A finite family dominating all admissible words

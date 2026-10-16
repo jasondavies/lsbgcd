@@ -1,4 +1,8 @@
-import Lsbgcd.ClosedForms
+module
+
+public import Lsbgcd.ClosedForms
+
+@[expose] public section
 
 /-! # Splitting global minimality into reduction and continuant minimisation -/
 namespace Lsbgcd

@@ -1,4 +1,8 @@
-import Lsbgcd.SharpComplexity
+module
+
+public import Lsbgcd.SharpComplexity
+
+@[expose] public section
 
 /-!
 # The Euclidean comparison in §7

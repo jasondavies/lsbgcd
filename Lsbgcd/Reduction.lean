@@ -1,4 +1,8 @@
-import Lsbgcd.ProofObligations
+module
+
+public import Lsbgcd.ProofObligations
+
+@[expose] public section
 
 /-!
 # Reduction to admissible words (the consequence of Theorem 4.3)
