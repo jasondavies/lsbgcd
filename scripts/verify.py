@@ -21,10 +21,12 @@ def find_lake():
     raise RuntimeError("Lake is not installed. Install elan as described in README.md.")
 
 
-def call(lake, name, *args):
+def call(lake, name, *args, extra_env=None):
     report = OUT / (name + ".log")
     env = os.environ.copy()
     env["PATH"] = str(Path(lake).parent) + os.pathsep + env.get("PATH", "")
+    for key, value in (extra_env or {}).items():
+        env.setdefault(key, value)
     print(f"Running {name}…", flush=True)
     with report.open("w") as log:
         proc = subprocess.run(
@@ -41,7 +43,10 @@ def main():
     lake = find_lake()
     OUT.mkdir(parents=True, exist_ok=True)
     call(lake, "build", "build")
-    call(lake, "kernel", "env", "leanchecker", "--verbose", "Lsbgcd")
+    # Each leanchecker thread holds about 7 GB, so replay on one thread unless
+    # LEAN_NUM_THREADS is already set.
+    call(lake, "kernel", "env", "leanchecker", "--verbose", "Lsbgcd",
+         extra_env={"LEAN_NUM_THREADS": "1"})
     call(lake, "axioms", "env", "lean", "scripts/Audit.lean")
     print("Local Lean verification passed.")
 

@@ -46,7 +46,8 @@ The script runs:
 
 1. `lake build` to compile the project;
 2. `lake env leanchecker --verbose Lsbgcd` to replay project declarations through
-   Lean's kernel;
+   Lean's kernel, on one thread by default because each thread needs about 7 GB of
+   memory (set `LEAN_NUM_THREADS` to use more);
 3. `lake env lean scripts/Audit.lean` to audit the axiom dependencies of every
    declaration originating in a project module, including definitions and private
    declarations. It rejects unfinished proofs and any axioms beyond `propext`,
