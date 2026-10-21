@@ -21,6 +21,26 @@ def find_lake():
     raise RuntimeError("Lake is not installed. Install elan as described in README.md.")
 
 
+def remove_stale_outputs():
+    """Delete build outputs of project modules whose source file is gone.
+
+    `leanchecker Lsbgcd` replays every `Lsbgcd.*` module found on disk, so an
+    output left behind by a deleted module (for example in a restored CI
+    cache) would be replayed against declarations that no longer exist.
+    """
+    sources = ROOT / "Lsbgcd"
+    for outputs in (ROOT / ".lake" / "build" / directory / "Lsbgcd"
+                    for directory in (Path("lib") / "lean", Path("ir"))):
+        if not outputs.is_dir():
+            continue
+        for path in sorted(outputs.rglob("*")):
+            relative = path.relative_to(outputs)
+            module = relative.parent / relative.name.split(".", 1)[0]
+            if path.is_file() and not (sources / module).with_suffix(".lean").is_file():
+                print(f"Removing stale build output {path.relative_to(ROOT)}", flush=True)
+                path.unlink()
+
+
 def call(lake, name, *args, default_env=None):
     report = OUT / (name + ".log")
     env = os.environ.copy()
@@ -42,6 +62,7 @@ def call(lake, name, *args, default_env=None):
 def main():
     lake = find_lake()
     OUT.mkdir(parents=True, exist_ok=True)
+    remove_stale_outputs()
     call(lake, "build", "build")
     # Each leanchecker thread holds about 7 GB, so replay on one thread unless
     # LEAN_NUM_THREADS is already set.
