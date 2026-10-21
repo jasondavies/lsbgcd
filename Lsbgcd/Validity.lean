@@ -12,9 +12,14 @@ interchange test fires. Lists are written in inverse execution order: the
 first listed step is undone first. In particular, an exchanged step requires
 `x > y`, as stated in the proof of Theorem 3.3; equality in the printed table
 must not be interpreted as allowing an interchange.
+
+This module, PartialReduction and Computation follow the paper's §§3–4; the
+proof of Theorem 1.1 uses the direct reduction in Reduction.lean instead.
 -/
 namespace Lsbgcd
 
+/-- The four kinds of loop iteration in §2, each with its exponent `e`: branch A
+or B, and `IA`/`IB` when the loop then interchanges the two coordinates. -/
 inductive Transformation where
   | A (e : ℕ)
   | B (e : ℕ)
@@ -24,6 +29,7 @@ inductive Transformation where
 
 namespace Transformation
 
+/-- The input pair from which the transformation produces the given output pair. -/
 def inverse : Transformation → ℕ × ℕ → ℕ × ℕ
   | .A e, p => inverseA e p
   | .B e, p => inverseB e p

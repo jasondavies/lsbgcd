@@ -2,7 +2,6 @@ module
 
 public import Lsbgcd.RamharterSortingCore
 public import Lsbgcd.RamharterWeightedExtrema
-public import Lsbgcd.RamharterOrientation
 
 @[expose] public section
 
@@ -13,6 +12,25 @@ Strict boundary comparisons force the two next extreme digits to the
 endpoints. Peeling them reverses the order on the remaining multiset.
 The induction keeps the equality case and therefore proves uniqueness
 up to reversal, including repeated digits.
+
+The proof of `ramharter_theorem` is spread over these modules:
+
+* `Ramharter`: the statement `RamharterTheorem` and the arrangement
+  `ramharterWord`.
+* `RamharterShape`: structural equations for `ramharterWord`, notably the
+  two-endpoint recursion `ramharterWord_two`.
+* `RamharterWeighted`: continuants with rational boundary values, and the
+  exchange identities for reversing part of a word.
+* `RamharterBoundary`: the low and high boundary contexts and how they
+  alternate when two digits are peeled.
+* `RamharterMatrix`: matrix evaluation of boundary continued fractions.
+* `RamharterMode`: one Boolean-indexed context for both alternatives.
+* `RamharterWeightedExtrema`: where the extremes sit in a weighted minimum.
+* `RamharterSortingCore`: finite attainment and the logical induction step.
+* `RamharterSort` (this module): the induction and the theorem.
+
+`RamharterExtrema` derives further necessary conditions on unweighted
+minima directly; it is not used here.
 -/
 namespace Lsbgcd
 
@@ -45,8 +63,7 @@ theorem ramharter_minimum_normalForm {high : Bool} {lo hi : ℕ} {l r : ℚ}
             ramharterKey high x ≤ ramharterKey high y →
             RamharterNormalForm l r (a :: b :: rest) (x :: (mid ++ [y])) := by
           intro x y mid hm hxy
-          have hwm : DigitsWithin lo hi (x :: (mid ++ [y])) :=
-            fun z hz => hw z (hm.1.mem_iff.mp hz)
+          have hwm : DigitsWithin lo hi (x :: (mid ++ [y])) := hw.subset hm.1.subset
           have hend := ramharter_weighted_minimum_endpoints H hlo hwm
             (fun ds hd => hm.2 ds (hd.trans hm.1))
           obtain ⟨hxa, hyb, hp⟩ := sorted_endpoints_identify (ramharterKey high)
@@ -54,8 +71,8 @@ theorem ramharter_minimum_normalForm {high : Bool} {lo hi : ℕ} {l r : ℚ}
           subst x
           subst y
           obtain ⟨H', hw', hs'⟩ := ramharterContext_step H hlo hw hs
-          have ha : 0 < a := hlo.trans_le (hw a (by simp)).1
-          have hb : 0 < b := hlo.trans_le (hw b (by simp)).1
+          have ha : 0 < a := hw.pos hlo a (by simp)
+          have hb : 0 < b := hw.pos hlo b (by simp)
           have hlo' : 0 < (if high then lo else b) := by cases high <;> assumption
           have hinner := weighted_minimum_peel H.nonneg_left H.nonneg_right ha hb hp hm
           have hlen : rest.reverse.length < n := by
@@ -66,11 +83,8 @@ theorem ramharter_minimum_normalForm {high : Bool} {lo hi : ℕ} {l r : ℚ}
           exact ramharterNormalForm_peel (ramharterContext_update_eq_iff H hxy).mp hi
         have hlen : 2 ≤ cs.length := by rw [hmin.1.length_eq]; simp
         obtain ⟨x, y, mid, rfl⟩ := list_outer_decomposition cs hlen
-        have hwm : DigitsWithin lo hi (x :: (mid ++ [y])) :=
-          fun z hz => hw z (hmin.1.mem_iff.mp hz)
-        have hmid : ∀ z ∈ mid, 0 < z := by
-          intro z hz
-          exact hlo.trans_le (hwm z (by simp [hz])).1
+        have hmid : ∀ z ∈ mid, 0 < z := fun z hz =>
+          (hw.subset hmin.1.subset).pos hlo z (by simp [hz])
         by_cases hxy : ramharterKey high x ≤ ramharterKey high y
         · exact oriented x y mid hmin hxy
         · have he : l = r :=

@@ -87,133 +87,93 @@ private theorem sqrt3_powers :
          _ = _ := by rw [h2]; norm_num
   exact ⟨h2, h3, h4, h5, h6⟩
 
+/-- Closes an initial-value goal of a closed form: evaluate the candidate word
+at a small index, expand the powers of `α` and `β`, and reduce powers of `√3`. -/
+local macro "closed_form_initial" : tactic => `(tactic| (
+  obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
+  norm_num [candidate, candidateWord, blockWord, repeat12, repeat21, convergent, alpha, beta]
+  ring_nf
+  try norm_num [h2, h3, h4, h5, h6]))
+
 /-- Theorem 1.1's odd x formula, for the constructed candidates. -/
 theorem candidate_odd_x_closed (n : ℕ) :
     ((candidate (2 * n + 1)).1 : ℝ) =
       Real.sqrt 3 / 6 * (alpha ^ (n + 1) - beta ^ (n + 1)) := by
   refine sequence2_unique (fun k => ((candidate (2 * k + 1)).1 : ℝ))
-    (fun k => Real.sqrt 3 / 6 * (alpha ^ (k + 1) - beta ^ (k + 1))) ?_ ?_ ?_ ?_ n
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · intro k
-    exact_mod_cast (candidate_odd_recurrence k).1
-  · intro k
-    convert geometric_odd (Real.sqrt 3 / 6) (-Real.sqrt 3 / 6) 1 k using 1 <;> ring
+    (fun k => Real.sqrt 3 / 6 * (alpha ^ (k + 1) - beta ^ (k + 1))) ?_ ?_
+    (fun k => by exact_mod_cast (candidate_odd_recurrence k).1)
+    (fun k => by
+      convert geometric_odd (Real.sqrt 3 / 6) (-Real.sqrt 3 / 6) 1 k using 1 <;> ring) n
+  all_goals closed_form_initial
 
 /-- Theorem 1.1's odd y formula, for the constructed candidates. -/
 theorem candidate_odd_y_closed (n : ℕ) :
     ((candidate (2 * n + 1)).2 : ℝ) =
       Real.sqrt 3 / 6 * ((1 + Real.sqrt 3) * alpha ^ n - (1 - Real.sqrt 3) * beta ^ n) := by
   refine sequence2_unique (fun k => ((candidate (2 * k + 1)).2 : ℝ))
-    (fun k => Real.sqrt 3 / 6 * ((1 + Real.sqrt 3) * alpha ^ k - (1 - Real.sqrt 3) * beta ^ k)) ?_ ?_ ?_ ?_ n
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · intro k
-    exact_mod_cast (candidate_odd_recurrence k).2
-  · intro k
-    convert geometric_odd (Real.sqrt 3 / 6 * (1 + Real.sqrt 3)) (-Real.sqrt 3 / 6 * (1 - Real.sqrt 3)) 0 k using 1 <;> ring
+    (fun k => Real.sqrt 3 / 6 *
+      ((1 + Real.sqrt 3) * alpha ^ k - (1 - Real.sqrt 3) * beta ^ k)) ?_ ?_
+    (fun k => by exact_mod_cast (candidate_odd_recurrence k).2)
+    (fun k => by
+      convert geometric_odd (Real.sqrt 3 / 6 * (1 + Real.sqrt 3))
+        (-Real.sqrt 3 / 6 * (1 - Real.sqrt 3)) 0 k using 1 <;> ring) n
+  all_goals closed_form_initial
 
 /-- Theorem 1.1's even x formula, for the constructed candidates. -/
 theorem candidate_even_x_closed (n : ℕ) :
     ((candidate (4 * n)).1 : ℝ) =
-      (2 + (4 - Real.sqrt 3) * alpha ^ (2 * n + 1) + (4 + Real.sqrt 3) * beta ^ (2 * n + 1)) / 12 := by
+      (2 + (4 - Real.sqrt 3) * alpha ^ (2 * n + 1) +
+        (4 + Real.sqrt 3) * beta ^ (2 * n + 1)) / 12 := by
   refine sequence3_unique (fun k => ((candidate (4 * k)).1 : ℝ))
-    (fun k => (2 + (4 - Real.sqrt 3) * alpha ^ (2 * k + 1) + (4 + Real.sqrt 3) * beta ^ (2 * k + 1)) / 12) ?_ ?_ ?_ ?_ ?_ n
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · intro k
-    exact_mod_cast (candidate_even_recurrence k).1
-  · intro k
-    convert geometric_even (2 / 12) ((4 - Real.sqrt 3) / 12) ((4 + Real.sqrt 3) / 12) 1 k using 1 <;> ring
+    (fun k => (2 + (4 - Real.sqrt 3) * alpha ^ (2 * k + 1) +
+      (4 + Real.sqrt 3) * beta ^ (2 * k + 1)) / 12) ?_ ?_ ?_
+    (fun k => by exact_mod_cast (candidate_even_recurrence k).1)
+    (fun k => by
+      convert geometric_even (2 / 12) ((4 - Real.sqrt 3) / 12) ((4 + Real.sqrt 3) / 12)
+        1 k using 1 <;> ring) n
+  all_goals closed_form_initial
 
 /-- Theorem 1.1's even y formula, for the constructed candidates. -/
 theorem candidate_even_y_closed (n : ℕ) :
     ((candidate (4 * n)).2 : ℝ) =
-      (-2 + (1 + 3 * Real.sqrt 3) * alpha ^ (2 * n) + (1 - 3 * Real.sqrt 3) * beta ^ (2 * n)) / 12 := by
+      (-2 + (1 + 3 * Real.sqrt 3) * alpha ^ (2 * n) +
+        (1 - 3 * Real.sqrt 3) * beta ^ (2 * n)) / 12 := by
   refine sequence3_unique (fun k => ((candidate (4 * k)).2 : ℝ))
-    (fun k => (-2 + (1 + 3 * Real.sqrt 3) * alpha ^ (2 * k) + (1 - 3 * Real.sqrt 3) * beta ^ (2 * k)) / 12) ?_ ?_ ?_ ?_ ?_ n
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · intro k
-    exact_mod_cast (candidate_even_recurrence k).2
-  · intro k
-    convert geometric_even (-2 / 12) ((1 + 3 * Real.sqrt 3) / 12) ((1 - 3 * Real.sqrt 3) / 12) 0 k using 1 <;> ring
+    (fun k => (-2 + (1 + 3 * Real.sqrt 3) * alpha ^ (2 * k) +
+      (1 - 3 * Real.sqrt 3) * beta ^ (2 * k)) / 12) ?_ ?_ ?_
+    (fun k => by exact_mod_cast (candidate_even_recurrence k).2)
+    (fun k => by
+      convert geometric_even (-2 / 12) ((1 + 3 * Real.sqrt 3) / 12)
+        ((1 - 3 * Real.sqrt 3) / 12) 0 k using 1 <;> ring) n
+  all_goals closed_form_initial
 
 /-- Theorem 1.1's offset x formula, for the constructed candidates. -/
 theorem candidate_offset_x_closed (n : ℕ) :
     ((candidate (4 * n + 2)).1 : ℝ) =
-      (4 + (4 - Real.sqrt 3) * alpha ^ (2 * n + 2) + (4 + Real.sqrt 3) * beta ^ (2 * n + 2)) / 12 := by
+      (4 + (4 - Real.sqrt 3) * alpha ^ (2 * n + 2) +
+        (4 + Real.sqrt 3) * beta ^ (2 * n + 2)) / 12 := by
   refine sequence3_unique (fun k => ((candidate (4 * k + 2)).1 : ℝ))
-    (fun k => (4 + (4 - Real.sqrt 3) * alpha ^ (2 * k + 2) + (4 + Real.sqrt 3) * beta ^ (2 * k + 2)) / 12) ?_ ?_ ?_ ?_ ?_ n
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · intro k
-    exact_mod_cast (candidate_offset_recurrence k).1
-  · intro k
-    convert geometric_even (4 / 12) ((4 - Real.sqrt 3) / 12) ((4 + Real.sqrt 3) / 12) 2 k using 1 <;> ring
+    (fun k => (4 + (4 - Real.sqrt 3) * alpha ^ (2 * k + 2) +
+      (4 + Real.sqrt 3) * beta ^ (2 * k + 2)) / 12) ?_ ?_ ?_
+    (fun k => by exact_mod_cast (candidate_offset_recurrence k).1)
+    (fun k => by
+      convert geometric_even (4 / 12) ((4 - Real.sqrt 3) / 12) ((4 + Real.sqrt 3) / 12)
+        2 k using 1 <;> ring) n
+  all_goals closed_form_initial
 
 /-- Theorem 1.1's offset y formula, for the constructed candidates. -/
 theorem candidate_offset_y_closed (n : ℕ) :
     ((candidate (4 * n + 2)).2 : ℝ) =
-      (-10 + (1 + 3 * Real.sqrt 3) * alpha ^ (2 * n + 1) + (1 - 3 * Real.sqrt 3) * beta ^ (2 * n + 1)) / 12 := by
+      (-10 + (1 + 3 * Real.sqrt 3) * alpha ^ (2 * n + 1) +
+        (1 - 3 * Real.sqrt 3) * beta ^ (2 * n + 1)) / 12 := by
   refine sequence3_unique (fun k => ((candidate (4 * k + 2)).2 : ℝ))
-    (fun k => (-10 + (1 + 3 * Real.sqrt 3) * alpha ^ (2 * k + 1) + (1 - 3 * Real.sqrt 3) * beta ^ (2 * k + 1)) / 12) ?_ ?_ ?_ ?_ ?_ n
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · obtain ⟨h2, h3, h4, h5, h6⟩ := sqrt3_powers
-    norm_num [candidate, candidateWord, repeat12, repeat21, convergent, alpha, beta]
-    ring_nf
-    norm_num [h2, h3, h4, h5, h6]
-  · intro k
-    exact_mod_cast (candidate_offset_recurrence k).2
-  · intro k
-    convert geometric_even (-10 / 12) ((1 + 3 * Real.sqrt 3) / 12) ((1 - 3 * Real.sqrt 3) / 12) 1 k using 1 <;> ring
+    (fun k => (-10 + (1 + 3 * Real.sqrt 3) * alpha ^ (2 * k + 1) +
+      (1 - 3 * Real.sqrt 3) * beta ^ (2 * k + 1)) / 12) ?_ ?_ ?_
+    (fun k => by exact_mod_cast (candidate_offset_recurrence k).2)
+    (fun k => by
+      convert geometric_even (-10 / 12) ((1 + 3 * Real.sqrt 3) / 12)
+        ((1 - 3 * Real.sqrt 3) / 12) 1 k using 1 <;> ring) n
+  all_goals closed_form_initial
 
 /-- All six closed forms, without any minimality assumption. -/
 theorem candidate_closed_forms : ClosedForms := by
@@ -221,9 +181,5 @@ theorem candidate_closed_forms : ClosedForms := by
   exact ⟨candidate_odd_x_closed n, candidate_odd_y_closed n,
     candidate_even_x_closed n, candidate_even_y_closed n,
     candidate_offset_x_closed n, candidate_offset_y_closed n⟩
-
-/-- With global minimality established, the rest of Theorem 1.1 follows. -/
-theorem main_of_minimality (h : CandidateMinimality) : MainTheorem :=
-  ⟨h, candidate_x_order16, candidate_y_order16, candidate_closed_forms⟩
 
 end Lsbgcd

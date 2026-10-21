@@ -12,6 +12,7 @@ theorem paper_trace :
     [step 47 40, step 40 7, step 12 7, step 7 2, step 2 1] =
       [(40, 7), (12, 7), (7, 2), (2, 1), (1, 0)] := by decide
 
+/-- The worked example on p. 476: `(47, 40)` has gcd 1 after five iterations. -/
 theorem paper_example : gcd 47 40 = 1 ∧ iterations 47 40 = 5 := by
   rw [gcd_correct, iterations_eq_runFuel]
   decide
@@ -27,13 +28,12 @@ def table1 : List (ℕ × ℕ) :=
 theorem table1_candidates : (List.range 20).map (fun n => candidate (n + 1)) = table1 := by
   decide
 
-set_option maxRecDepth 10000 in
-set_option maxHeartbeats 2000000 in
 /-- Table 1's pairs require respectively 1 through 20 iterations.
-This finite check makes no claim of minimality. -/
+This finite check makes no claim of minimality. The kernel evaluates
+`runFuel` directly; the elaborator's `decide` would need far larger limits. -/
 theorem table1_iterations : table1.map (fun p => iterations p.1 p.2) =
     [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20] := by
   simp only [table1, List.map_cons, List.map_nil, iterations_eq_runFuel]
-  decide
+  decide +kernel
 
 end Lsbgcd

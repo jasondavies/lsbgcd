@@ -111,10 +111,10 @@ All declarations below are in namespace `Lsbgcd`.
 | Additional §1, §4, §5 and §7 claims | [`PaperCorollaries.lean`](Lsbgcd/PaperCorollaries.lean): rational continued-fraction interpretation, worst-case A₀/A₁ traces, no single infinite expansion, Table 1 minimality, certified decimal coefficients `1.053` and `1.441`. |
 
 [`Specification.lean`](Lsbgcd/Specification.lean) defines `IsWorstCase`,
-`CandidateMinimality`, `Order16`, `ClosedForms`, and `MainTheorem`.
-[`ProofObligations.lean`](Lsbgcd/ProofObligations.lean) records compositional
-proof implications; their hypotheses are discharged in `Reduction.lean` and
-`Minimality.lean`. In particular:
+`CandidateMinimality`, `Order16`, `ClosedForms`, and `MainTheorem`, together
+with the two intermediate statements `ReductionToAdmissible` (proved in
+`Reduction.lean`) and `AdmissibleMinimality` (proved in `Minimality.lean`).
+`Minimality.lean` combines them into the unconditional main theorem:
 
 ```lean
 theorem theorem1_1 : MainTheorem
@@ -144,12 +144,15 @@ For even lengths, an exact nonnegative polynomial identity shows that
 For odd lengths, the existing alternating word already dominates.
 Equality through these reductions proves uniqueness.
 
-There is an apparent typo on p. 484: the prose calls `pₙ` the numerator
+In Lean the sequence is `sqrtThreeDenominator`. There is an apparent typo on
+p. 484: the prose calls `pₙ` the numerator
 of a convergent to `√3`, whereas the printed recurrence gives
 `1,3,4,11,15,41,…`. These are the **denominators** of the convergents
 `[1;1]`, `[1;1,2]`, `[1;1,2,1]`, etc.
 The theorem follows the explicit recurrence; the finite continued-fraction
-identity is proved as `squareNumerator_sqrtThree_denominator`.
+identity is proved as `convergent_sqrtThreeWord_denominator`, which states
+that the denominator of `[1;1,2,1,…]` with `n + 1` partial quotients after the
+initial `1` is `sqrtThreeDenominator n`.
 
 The analytic connection is also proved: `sqrtThree_continuedFraction_tendsto`
 states that these finite continued fractions converge to `√3`.
@@ -157,8 +160,7 @@ If `Cₙ` has `n` partial quotients after the initial `1`, then
 `sqrtThreeConvergent_error` proves `|Cₙ − √3| ≤ (1/3)^(n/2)`, with integer
 division in the exponent. The proof uses the two-step recurrence
 `Cₙ₊₂ = (2Cₙ + 3)/(Cₙ + 2)`, which contracts the error by at least a factor
-of three. `sqrtThreeConvergent_denominator` connects the denominator of
-`Cₙ₊₁` directly to `squareNumerator n`.
+of three.
 
 ## General continuant proof
 
@@ -172,8 +174,9 @@ alternative minimiser.
 
 The supporting modules are `ContinuantOrder`, `RamharterShape`,
 `RamharterBoundary`, `RamharterMatrix`, `RamharterWeighted`,
-`RamharterWeightedExtrema`, `RamharterMode`, `RamharterOrientation`,
-`RamharterFinite`, and `RamharterSortingCore`.
+`RamharterWeightedExtrema`, `RamharterMode`, and `RamharterSortingCore`;
+the header of [`RamharterSort.lean`](Lsbgcd/RamharterSort.lean) gives the role
+of each.
 [`RamharterExtrema.lean`](Lsbgcd/RamharterExtrema.lean) also exposes the
 unweighted outermost endpoint conditions directly.
 

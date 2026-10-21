@@ -9,7 +9,8 @@ public import Lsbgcd.Candidates
 
 The propositions in this module are specifications, not asserted theorems.
 The recurrence and closed-form specifications are proved in MainRecurrence
-and ClosedForms. Minimality proves global minimality and combines the
+and ClosedForms. Reduction proves `ReductionToAdmissible`, and Minimality
+proves `AdmissibleMinimality`, deduces `CandidateMinimality`, and combines the
 results into the unconditional theorem `theorem1_1`. No specification adds
 an assumption to the verified library.
 
@@ -19,6 +20,8 @@ lexicographically least zero-iteration input.
 -/
 namespace Lsbgcd
 
+/-- `p = (u, v)` with `0 ≤ v ≤ u` and `0 < u` takes exactly `n` iterations and is
+lexicographically least among all such inputs: the paper's `(xₙ, yₙ)`. -/
 def IsWorstCase (n : ℕ) (p : ℕ × ℕ) : Prop :=
   0 < p.1 ∧ p.2 ≤ p.1 ∧ iterations p.1 p.2 = n ∧
     ∀ u v : ℕ, 0 < u → v ≤ u → iterations u v = n → LexLE p (u, v)
@@ -42,7 +45,10 @@ def Order16 (f : ℕ → ℤ) : Prop := ∀ n : ℕ,
   f (n + 16) - 4 * f (n + 14) - 14 * f (n + 12) + 60 * f (n + 10) -
     60 * f (n + 6) + 14 * f (n + 4) + 4 * f (n + 2) - f n = 0
 
+/-- `α = 2 + √3`. The closed forms of Theorem 1.1 are written in powers of `α`
+and `β`, the two roots of `x² − 4x + 1`. -/
 noncomputable def alpha : ℝ := 2 + Real.sqrt 3
+/-- `β = 2 − √3 = 1 / α`. -/
 noncomputable def beta : ℝ := 2 - Real.sqrt 3
 
 /-- The six displayed formulas in Theorem 1.1 (p. 474). -/

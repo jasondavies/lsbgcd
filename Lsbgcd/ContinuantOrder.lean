@@ -9,10 +9,23 @@ public import Lsbgcd.Continuants
 
 These facts apply to arbitrary positive integer digits. In particular,
 unequal outside digits determine the sign of a word matrix's off-diagonal
-difference. Equal outside digits reverse that sign. Together these are the
-arithmetic ingredients for alternating comparisons of continuant words.
+difference. These are the arithmetic ingredients for the interval-reversal
+comparisons in the Ramharter modules.
 -/
 namespace Lsbgcd
+
+@[simp] theorem wordMatrix_nil : wordMatrix [] = 1 := rfl
+
+/-- The word matrix of `x :: (as ++ [y])` in terms of the interior matrix. -/
+theorem wordMatrix_cons_append_singleton (x y : ℕ) (as : List ℕ) :
+    wordMatrix (x :: (as ++ [y])) = !![
+      (x : ℤ) * (wordMatrix as 0 0 * y + wordMatrix as 0 1) +
+        (wordMatrix as 1 0 * y + wordMatrix as 1 1),
+      (x : ℤ) * wordMatrix as 0 0 + wordMatrix as 1 0;
+      wordMatrix as 0 0 * y + wordMatrix as 0 1, wordMatrix as 0 0] := by
+  ext i j
+  fin_cases i <;> fin_cases j <;>
+    simp [wordMatrix, wordMatrix_append, digitMatrix, Matrix.mul_apply, Fin.sum_univ_two]
 
 theorem positive_convergent {as : List ℕ} (h : ∀ a ∈ as, 0 < a) :
     0 < (convergent as).1 ∧ (convergent as).2 ≤ (convergent as).1 := by
@@ -74,20 +87,9 @@ theorem wordMatrix_endpoints_strict {as : List ℕ} {x y : ℕ}
     simpa [wordMatrix, digitMatrix, Matrix.mul_apply, Fin.sum_univ_two] using
       (show (x : ℤ) < y by exact_mod_cast hxy)
   · have h01 := wordMatrix_upper_right_positive h hn
-    simp only [wordMatrix, wordMatrix_append, mul_one, digitMatrix,
-      Matrix.mul_apply, Fin.sum_univ_two, Matrix.of_apply,
+    simp only [wordMatrix_cons_append_singleton, Matrix.of_apply, Matrix.cons_val',
       Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one,
-      mul_zero, mul_one, one_mul, zero_mul, add_zero]
+      Matrix.empty_val']
     nlinarith
-
-/-- Equal outside digits reverse the off-diagonal difference. -/
-theorem wordMatrix_equal_endpoints (as : List ℕ) (a : ℕ) :
-    wordMatrix (a :: (as ++ [a])) 0 1 - wordMatrix (a :: (as ++ [a])) 1 0 =
-      -(wordMatrix as 0 1 - wordMatrix as 1 0) := by
-  simp only [wordMatrix, wordMatrix_append, mul_one, digitMatrix,
-    Matrix.mul_apply, Fin.sum_univ_two, Matrix.of_apply,
-    Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one,
-    mul_zero, mul_one, one_mul, zero_mul, add_zero]
-  ring
 
 end Lsbgcd

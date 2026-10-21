@@ -62,9 +62,9 @@ theorem theorem5_1 (bs : List ℕ) (hpos : ∀ b ∈ bs, 0 < b) (hs : bs.Pairwis
 
 theorem sum_squares_minimizer_eq {n : ℕ} {p : ℕ × ℕ} (hn : 2 ≤ n)
     (h : IsSumSquaresMinimizer n p) :
-    p = (squareNumerator (n - 1), squareNumerator (n - 2)) := by
+    p = (sqrtThreeDenominator (n - 1), sqrtThreeDenominator (n - 2)) := by
   rw [sum_squares_minimizer_unique h]
-  have he := squareCandidate_numerators (n - 2)
+  have he := squareCandidate_eq_sqrtThreeDenominator (n - 2)
   rwa [show n - 2 + 2 = n by omega, show n - 2 + 1 = n - 1 by omega] at he
 
 end Lsbgcd

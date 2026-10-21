@@ -5,7 +5,15 @@ public import Lsbgcd.ContinuantOrder
 
 @[expose] public section
 
-/-! # Necessary endpoint conditions for the general permutation minimum -/
+/-!
+# Necessary endpoint conditions for the general permutation minimum
+
+Direct interval-reversal arguments on ordinary continuants: in any minimising
+arrangement the endpoints are the two least digits, the digits next to them
+are the two greatest of the rest, and distinct endpoints fix the orientation
+of those neighbours. This is a standalone corollary module: the proof of
+`ramharter_theorem` in `RamharterSort.lean` does not use it.
+-/
 namespace Lsbgcd
 
 /-- A suffix with increasing endpoints can be reversed to decrease the
@@ -18,9 +26,8 @@ theorem continuant_suffix_reverse_lt (pre mid : List ℕ) (x y : ℕ)
   have hs := wordMatrix_endpoints_strict hmid hxy
   have hp := wordMatrix_upper_right_positive hpre hne
   have hd := continuant_reverse_interval_difference pre (x :: (mid ++ [y])) []
-  have h0 : wordMatrix [] 1 0 = 0 := rfl
-  have h1 : wordMatrix [] 0 0 = 1 := rfl
-  simp only [List.append_nil, h0, h1, mul_zero, mul_one, zero_sub] at hd
+  simp only [List.append_nil, wordMatrix_nil, Matrix.one_apply_eq,
+    Matrix.one_apply_ne (show (1 : Fin 2) ≠ 0 by decide), mul_zero, mul_one, zero_sub] at hd
   have hm : 0 < (wordMatrix (x :: (mid ++ [y])) 1 0 -
       wordMatrix (x :: (mid ++ [y])) 0 1) * wordMatrix pre 0 1 :=
     mul_pos (sub_pos.mpr hs) hp
@@ -64,14 +71,14 @@ theorem permutation_minimum_last_le_interior {bs : List ℕ} {a b : ℕ} {mid : 
   rw [he] at hle
   omega
 
-/-- Reversing a globally minimizing arrangement preserves global minimality. -/
+/-- Reversing a globally minimising arrangement preserves global minimality. -/
 theorem permutation_minimum_reverse {bs cs : List ℕ}
     (h : IsPermutationMinimum bs cs) : IsPermutationMinimum bs cs.reverse := by
   refine ⟨(List.reverse_perm cs).trans h.1, ?_⟩
   intro as hp
   simpa only [continuant_reverse] using h.2 as hp
 
-/-- Both endpoints of a minimizing arrangement are no greater than every
+/-- Both endpoints of a minimising arrangement are no greater than every
 interior digit. Orienting the endpoints increasingly therefore puts the two
 smallest entries at the ends, with multiplicity respected. -/
 theorem permutation_minimum_endpoints {bs : List ℕ} {a b : ℕ} {mid : List ℕ}

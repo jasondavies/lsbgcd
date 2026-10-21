@@ -26,7 +26,9 @@ The definitions below are copied verbatim from `Lsbgcd/Algorithm.lean`,
 `Lsbgcd/Steps.lean`, `Lsbgcd/Specification.lean`, `Lsbgcd/Continuants.lean`,
 `Lsbgcd/Ramharter.lean` and `Lsbgcd/SumSquares.lean`;
 Comparator checks that they are the same constants as in the solution.
-The four supporting lemmas are needed only for termination of `run`.
+The four supporting lemmas are needed only for termination of `run`. They are
+also compared, so their proofs must stay identical to the library's, and must
+avoid `omega`, whose auxiliary lemmas are named after the current module.
 -/
 
 namespace Lsbgcd
@@ -151,12 +153,14 @@ def ramharterWord (bs : List ℕ) : List ℕ :=
 /-- The squared Euclidean size of an input pair. -/
 def squaredSize (p : ℕ × ℕ) : ℕ := p.1 ^ 2 + p.2 ^ 2
 
-/-- The explicit sequence `p₀ = 1, p₁ = 3` from the conjecture on p. 484.
-The coefficient is 1 at even indices and 2 at odd indices. -/
-def squareNumerator : ℕ → ℕ
+/-- The sequence `p₀ = 1, p₁ = 3, p₂ = 4, p₃ = 11, …` printed in the conjecture
+on p. 484, where `pₙ₊₂ = pₙ₊₁ + pₙ` for even `n` and `pₙ₊₂ = 2pₙ₊₁ + pₙ` for odd
+`n`. The paper's prose calls `pₙ` a numerator, but these are the denominators of
+the convergents `[1;1]`, `[1;1,2]`, `[1;1,2,1]`, … of `√3`. -/
+def sqrtThreeDenominator : ℕ → ℕ
   | 0 => 1
   | 1 => 3
-  | n + 2 => (if n % 2 = 0 then 1 else 2) * squareNumerator (n + 1) + squareNumerator n
+  | n + 2 => (if n % 2 = 0 then 1 else 2) * sqrtThreeDenominator (n + 1) + sqrtThreeDenominator n
 
 /-- Positive ordered input attaining the least squared size at exactly `n` iterations. -/
 def IsSumSquaresMinimizer (n : ℕ) (p : ℕ × ℕ) : Prop :=
@@ -225,13 +229,13 @@ theorem iterations_le_sharp_log {u v : ℕ} (hu : 0 < u) (hvu : v ≤ u) :
 /-- End of §6: for `n ≥ 2`, `(pₙ₋₁, pₙ₋₂)` minimises `u² + v²` among ordered
 positive inputs taking exactly `n` iterations. -/
 theorem sum_squares_conjecture {n : ℕ} (hn : 2 ≤ n) :
-    IsSumSquaresMinimizer n (squareNumerator (n - 1), squareNumerator (n - 2)) := by
+    IsSumSquaresMinimizer n (sqrtThreeDenominator (n - 1), sqrtThreeDenominator (n - 2)) := by
   sorry
 
 /-- The sum-of-squares minimiser is unique. -/
 theorem sum_squares_minimizer_eq {n : ℕ} {p : ℕ × ℕ} (hn : 2 ≤ n)
     (h : IsSumSquaresMinimizer n p) :
-    p = (squareNumerator (n - 1), squareNumerator (n - 2)) := by
+    p = (sqrtThreeDenominator (n - 1), sqrtThreeDenominator (n - 2)) := by
   sorry
 
 end Lsbgcd

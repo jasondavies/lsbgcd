@@ -106,12 +106,17 @@ automation:
       models: ["claude-opus-5-5"]
       framework: "Claude Code"
       tool_setup: >-
-        Palomar packaging only: ported every source file to the Lean module
+        Palomar packaging: ported every source file to the Lean module
         system, wrote Challenge.lean, Solution.lean, comparator.json and this
         file, and rewrote the proofs of four termination lemmas in
         Lsbgcd/Algorithm.lean as term proofs (replacing `omega`) so that
-        Comparator sees identical constants in Challenge and Solution. No
-        mathematical content of the development was changed.
+        Comparator sees identical constants in Challenge and Solution. Later
+        refactored the library for readability and maintainability: removed
+        unused and duplicate lemmas, merged small modules, factored repeated
+        proofs, shortened the decimal certificates, tightened the bit-cost
+        constants, added documentation, and renamed the sum-of-squares sequence
+        to sqrtThreeDenominator. The theorems in Challenge.lean are unchanged
+        apart from that rename.
   notes: >-
     All Lean code was produced by AI agents. The human author selected the
     source and directed the agents. The results are checked mechanically by

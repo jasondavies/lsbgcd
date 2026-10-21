@@ -7,9 +7,7 @@ public import Lsbgcd.Candidates
 /-! # Balancing the two alternating blocks in the even extremal words -/
 namespace Lsbgcd
 
-/-- The even-length words after the local exchange reductions. -/
-def blockWord (i j : ℕ) : List ℕ := repeat12 i ++ repeat21 j
-
+/-- The word matrix of `blockWord i j`. -/
 def blockMatrix (i j : ℕ) : Mat := (m1 * m2) ^ i * (m2 * m1) ^ j
 
 theorem blockWord_matrix (i j : ℕ) : wordMatrix (blockWord i j) = blockMatrix i j := by
@@ -92,9 +90,8 @@ private theorem alternating_off_diagonal (d : ℕ) :
 theorem blockWord_swap (i d : ℕ) :
     LexLE (convergent (blockWord i (i + d)))
       (convergent (blockWord (i + d) i)) := by
-  have hdiag : blockMatrix i (i + d) 0 0 = blockMatrix (i + d) i 0 0 := by
-    have h := congrArg (fun m : Mat => m 0 0) (blockMatrix_transpose i (i + d))
-    exact h
+  have hdiag : blockMatrix i (i + d) 0 0 = blockMatrix (i + d) i 0 0 :=
+    (congrArg (fun m : Mat => m 0 0) (blockMatrix_transpose i (i + d)) :)
   have hoff : blockMatrix i (i + d) 0 1 - blockMatrix i (i + d) 1 0 =
       ((m2 * m1) ^ d) 0 1 - ((m2 * m1) ^ d) 1 0 := by
     clear hdiag
@@ -133,14 +130,13 @@ private theorem blockWord_balanced_ordered (i d : ℕ) :
   | h d ih =>
     rcases d with _ | d
     · have hc : candidateWord (2 * (2 * i + 0)) = blockWord i (i + 0) := by
-        simp [candidateWord, blockWord, show 2 * (2 * i) = 4 * i by omega, Nat.mul_mod]
+        rw [show 2 * (2 * i + 0) = 4 * i by omega, candidateWord_four_mul, Nat.add_zero]
       right
       simp only [candidate, hc]
       exact ⟨trivial, le_rfl⟩
     · rcases d with _ | d
       · have hc : candidateWord (2 * (2 * i + 1)) = blockWord i (i + 1) := by
-          simp [candidateWord, blockWord, show 2 * (2 * i + 1) = 4 * i + 2 by omega,
-            Nat.add_div, Nat.add_mod, Nat.mul_mod]
+          rw [show 2 * (2 * i + 1) = 4 * i + 2 by omega, candidateWord_four_mul_add_two]
         right
         simp only [candidate, hc]
         exact ⟨trivial, le_rfl⟩
@@ -179,7 +175,7 @@ theorem blockWord_numerator_swap (i j : ℕ) :
   rw [(blockMatrix_column _ _).1, (blockMatrix_column _ _).1] at h
   exact_mod_cast h
 
-/-- An unbalanced split cannot minimize the numerator. -/
+/-- An unbalanced split cannot minimise the numerator. -/
 theorem blockWord_unbalanced_strict (i d : ℕ) :
     (candidate (2 * (2 * i + d + 2))).1 <
       (convergent (blockWord i (i + d + 2))).1 := by
@@ -216,16 +212,12 @@ theorem blockWord_numerator_eq_iff (i j : ℕ) :
     have hc : i = j ∨ j = i + 1 ∨ i = j + 1 := by omega
     rcases hc with hc | hc | hc
     · subst j
-      simp [candidate, candidateWord, blockWord,
-        show 2 * (i + i) = 4 * i by omega, Nat.mul_mod]
+      rw [candidate, show 2 * (i + i) = 4 * i by omega, candidateWord_four_mul]
     · subst j
-      simp [candidate, candidateWord, blockWord,
-        show 2 * (i + (i + 1)) = 4 * i + 2 by omega,
-        Nat.mul_mod, Nat.add_mod, Nat.add_div]
+      rw [candidate, show 2 * (i + (i + 1)) = 4 * i + 2 by omega,
+        candidateWord_four_mul_add_two]
     · subst i
-      rw [blockWord_numerator_swap]
-      simp [candidate, candidateWord, blockWord,
-        show 2 * (j + 1 + j) = 4 * j + 2 by omega,
-        Nat.mul_mod, Nat.add_mod, Nat.add_div]
+      rw [blockWord_numerator_swap, candidate, show 2 * (j + 1 + j) = 4 * j + 2 by omega,
+        candidateWord_four_mul_add_two]
 
 end Lsbgcd

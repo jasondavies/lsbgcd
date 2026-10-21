@@ -4,7 +4,14 @@ public import Lsbgcd.RamharterBoundary
 
 @[expose] public section
 
-/-! # Matrix evaluation of continued fractions with a rational boundary -/
+/-!
+# Matrix evaluation of continued fractions with a rational boundary
+
+`boundaryCF` from `RamharterBoundary.lean` is a linear fractional
+transformation given by the word matrix. These lemmas turn comparisons with
+a boundary value into signs of matrix expressions, the form in which
+`RamharterWeightedExtrema.lean` uses the boundary contexts.
+-/
 namespace Lsbgcd
 
 /-- The denominator after attaching a nonnegative right boundary is positive
@@ -50,6 +57,7 @@ theorem boundary_matrix_compare {as : List ℕ} {l r : ℚ}
   rw [boundaryCF_eq_matrix h hr, lt_div_iff₀ (boundary_matrix_denominator_pos h hr)]
   exact sub_pos.symm
 
+/-- The reverse comparison, with the matrix boundary factor negative. -/
 theorem boundary_matrix_compare_rev {as : List ℕ} {l r : ℚ}
     (h : ∀ a ∈ as, 0 < a) (hr : 0 ≤ r) :
     boundaryCF as r < l ↔
@@ -57,14 +65,5 @@ theorem boundary_matrix_compare_rev {as : List ℕ} {l r : ℚ}
         l * ((wordMatrix as 0 0 : ℚ) + (wordMatrix as 0 1 : ℚ) * r) < 0 := by
   rw [boundaryCF_eq_matrix h hr, div_lt_iff₀ (boundary_matrix_denominator_pos h hr)]
   exact sub_neg.symm
-
-theorem boundary_matrix_eq {as : List ℕ} {l r : ℚ}
-    (h : ∀ a ∈ as, 0 < a) (hr : 0 ≤ r) :
-    l = boundaryCF as r ↔
-      (wordMatrix as 1 0 : ℚ) + (wordMatrix as 1 1 : ℚ) * r -
-        l * ((wordMatrix as 0 0 : ℚ) + (wordMatrix as 0 1 : ℚ) * r) = 0 := by
-  rw [boundaryCF_eq_matrix h hr,
-    eq_div_iff (ne_of_gt (boundary_matrix_denominator_pos h hr))]
-  exact eq_comm.trans sub_eq_zero.symm
 
 end Lsbgcd

@@ -7,8 +7,14 @@ public import Lsbgcd.ContinuantOrder
 /-!
 # Weighted continuants for the Ramharter induction
 
-The rational parameters retain the contribution from the already fixed
-outside digits. Peeling endpoints reciprocates their updated parameters.
+`weightedContinuant l r w` is the continuant of `w` with the rational
+boundary values `l` and `r` (see `RamharterBoundary.lean`) standing for the
+outside digits already fixed by the induction; at `l = r = 0` it is the
+ordinary continuant. Peeling two endpoints reciprocates the parameters
+(`weightedContinuant_peel_le_iff`), and the exchange identities express the
+effect of reversing a prefix, suffix or whole word as a product of a matrix
+skew and a boundary factor. These identities drive the endpoint arguments in
+`RamharterWeightedExtrema.lean` and the induction in `RamharterSort.lean`.
 -/
 namespace Lsbgcd
 
@@ -36,27 +42,6 @@ theorem weightedContinuant_reverse (l r : ℚ) (w : List ℕ) :
   simp only [weightedContinuant, wordMatrix_reverse, Matrix.transpose_apply]
   ring
 
-theorem weightedContinuant_nonnegative {l r : ℚ} (w : List ℕ)
-    (hl : 0 ≤ l) (hr : 0 ≤ r) : 0 ≤ weightedContinuant l r w := by
-  have h00 : (0 : ℚ) ≤ wordMatrix w 0 0 := by exact_mod_cast wordMatrix_nonnegative w 0 0
-  have h01 : (0 : ℚ) ≤ wordMatrix w 0 1 := by exact_mod_cast wordMatrix_nonnegative w 0 1
-  have h10 : (0 : ℚ) ≤ wordMatrix w 1 0 := by exact_mod_cast wordMatrix_nonnegative w 1 0
-  have h11 : (0 : ℚ) ≤ wordMatrix w 1 1 := by exact_mod_cast wordMatrix_nonnegative w 1 1
-  unfold weightedContinuant
-  positivity
-
-theorem weightedContinuant_positive {l r : ℚ} {w : List ℕ}
-    (hl : 0 ≤ l) (hr : 0 ≤ r) (hw : ∀ a ∈ w, 0 < a) :
-    0 < weightedContinuant l r w := by
-  have h00 : (0 : ℚ) < wordMatrix w 0 0 := by
-    rw [(wordMatrix_first_column w).1]
-    exact_mod_cast (positive_convergent hw).1
-  have h01 : (0 : ℚ) ≤ wordMatrix w 0 1 := by exact_mod_cast wordMatrix_nonnegative w 0 1
-  have h10 : (0 : ℚ) ≤ wordMatrix w 1 0 := by exact_mod_cast wordMatrix_nonnegative w 1 0
-  have h11 : (0 : ℚ) ≤ wordMatrix w 1 1 := by exact_mod_cast wordMatrix_nonnegative w 1 1
-  unfold weightedContinuant
-  positivity
-
 /-- Factoring the two positive endpoint contributions leaves the same
 weighted objective with reciprocal parameters on the interior word. -/
 theorem weightedContinuant_peel {l r : ℚ} {a b : ℕ} (w : List ℕ)
@@ -64,10 +49,9 @@ theorem weightedContinuant_peel {l r : ℚ} {a b : ℕ} (w : List ℕ)
     weightedContinuant l r (a :: (w ++ [b])) =
       ((a : ℚ) + l) * ((b : ℚ) + r) *
         weightedContinuant (1 / ((a : ℚ) + l)) (1 / ((b : ℚ) + r)) w := by
-  simp only [weightedContinuant, wordMatrix, wordMatrix_append, mul_one, digitMatrix,
-    Matrix.mul_apply, Fin.sum_univ_two, Matrix.of_apply, Matrix.cons_val_zero,
-    Matrix.cons_val_one, Matrix.cons_val_fin_one, Int.cast_add, Int.cast_mul,
-    Int.cast_natCast, Int.cast_one, Int.cast_zero]
+  simp only [weightedContinuant, wordMatrix_cons_append_singleton, Matrix.of_apply,
+    Matrix.cons_val', Matrix.cons_val_zero, Matrix.cons_val_one, Matrix.cons_val_fin_one,
+    Matrix.empty_val', Int.cast_add, Int.cast_mul, Int.cast_natCast]
   field_simp
   ring
 
@@ -96,24 +80,8 @@ theorem weightedContinuant_peel_le_iff {l r : ℚ} {a b : ℕ} (u v : List ℕ)
   have hf : 0 < ((a : ℚ) + l) * ((b : ℚ) + r) := by positivity
   exact mul_le_mul_iff_right₀ hf
 
-/-- The positive endpoint factor also preserves the equality cases. -/
-theorem weightedContinuant_peel_eq_iff {l r : ℚ} {a b : ℕ} (u v : List ℕ)
-    (hl : 0 ≤ l) (hr : 0 ≤ r) (ha : 0 < a) (hb : 0 < b) :
-    weightedContinuant l r (a :: (u ++ [b])) =
-        weightedContinuant l r (a :: (v ++ [b])) ↔
-      weightedContinuant (1 / ((a : ℚ) + l)) (1 / ((b : ℚ) + r)) u =
-        weightedContinuant (1 / ((a : ℚ) + l)) (1 / ((b : ℚ) + r)) v := by
-  rw [weightedContinuant_peel_pos u hl hr ha hb, weightedContinuant_peel_pos v hl hr ha hb]
-  have ha' : (0 : ℚ) < a := by exact_mod_cast ha
-  have hb' : (0 : ℚ) < b := by exact_mod_cast hb
-  have hf : 0 < ((a : ℚ) + l) * ((b : ℚ) + r) := by positivity
-  constructor
-  · exact mul_left_cancel₀ (ne_of_gt hf)
-  · intro h
-    rw [h]
-
 /-- The complete interval-reversal exchange identity for the weighted
-objective. The unweighted identity is its specialization at zero parameters. -/
+objective. The unweighted identity is its specialisation at zero parameters. -/
 theorem weightedContinuant_reverse_interval_difference (l r : ℚ) (as bs cs : List ℕ) :
     weightedContinuant l r (as ++ bs ++ cs) -
       weightedContinuant l r (as ++ bs.reverse ++ cs) =
@@ -153,11 +121,8 @@ theorem weightedContinuant_reverse_difference (l r : ℚ) (w : List ℕ) :
   unfold weightedContinuant
   ring
 
-theorem weightedContinuant_reverse_equal_boundary (l : ℚ) (w : List ℕ) :
-    weightedContinuant l l w.reverse = weightedContinuant l l w :=
-  weightedContinuant_reverse l l w
-
-private theorem endpoint_skew_positive {a b : ℕ} {mid : List ℕ}
+/-- A word whose first digit exceeds its last has positive matrix skew. -/
+theorem endpoint_skew_pos {a b : ℕ} {mid : List ℕ}
     (hpos : ∀ x ∈ mid, 0 < x) (hba : b < a) :
     (0 : ℚ) < (wordMatrix (a :: (mid ++ [b])) 0 1 : ℚ) -
       (wordMatrix (a :: (mid ++ [b])) 1 0 : ℚ) := by
@@ -168,11 +133,18 @@ private theorem endpoint_skew_positive {a b : ℕ} {mid : List ℕ}
   simp only [Matrix.transpose_apply] at hs
   exact_mod_cast sub_pos.mpr hs
 
+/-- A word whose first digit is below its last has negative matrix skew. -/
+theorem endpoint_skew_neg {a b : ℕ} {mid : List ℕ}
+    (hpos : ∀ x ∈ mid, 0 < x) (hab : a < b) :
+    (wordMatrix (a :: (mid ++ [b])) 0 1 : ℚ) -
+      (wordMatrix (a :: (mid ++ [b])) 1 0 : ℚ) < 0 :=
+  sub_neg.mpr (by exact_mod_cast wordMatrix_endpoints_strict hpos hab)
+
 theorem weightedContinuant_low_reverse_lt {l r : ℚ} {a b : ℕ} (mid : List ℕ)
     (hpos : ∀ x ∈ mid, 0 < x) (hlr : l < r) (hba : b < a) :
     weightedContinuant l r (a :: (mid ++ [b])).reverse <
       weightedContinuant l r (a :: (mid ++ [b])) := by
-  have hp := mul_pos (sub_pos.mpr hlr) (endpoint_skew_positive hpos hba)
+  have hp := mul_pos (sub_pos.mpr hlr) (endpoint_skew_pos hpos hba)
   rw [← weightedContinuant_reverse_difference] at hp
   exact sub_pos.mp hp
 
@@ -180,31 +152,9 @@ theorem weightedContinuant_high_reverse_lt {l r : ℚ} {a b : ℕ} (mid : List �
     (hpos : ∀ x ∈ mid, 0 < x) (hrl : r < l) (hab : a < b) :
     weightedContinuant l r (a :: (mid ++ [b])).reverse <
       weightedContinuant l r (a :: (mid ++ [b])) := by
-  have hs := wordMatrix_endpoints_strict hpos hab
-  have hsq : (wordMatrix (a :: (mid ++ [b])) 0 1 : ℚ) -
-      (wordMatrix (a :: (mid ++ [b])) 1 0 : ℚ) < 0 := by
-    exact_mod_cast sub_neg.mpr hs
-  have hp := mul_pos_of_neg_of_neg (sub_neg.mpr hrl) hsq
+  have hp := mul_pos_of_neg_of_neg (sub_neg.mpr hrl) (endpoint_skew_neg hpos hab)
   rw [← weightedContinuant_reverse_difference] at hp
   exact sub_pos.mp hp
-
-theorem weightedContinuant_low_reverse_le {l r : ℚ} {a b : ℕ} (mid : List ℕ)
-    (hpos : ∀ x ∈ mid, 0 < x) (hlr : l ≤ r) (hba : b < a) :
-    weightedContinuant l r (a :: (mid ++ [b])).reverse ≤
-      weightedContinuant l r (a :: (mid ++ [b])) := by
-  rcases eq_or_lt_of_le hlr with he | he
-  · subst r
-    exact le_of_eq (weightedContinuant_reverse_equal_boundary _ _)
-  · exact le_of_lt (weightedContinuant_low_reverse_lt mid hpos he hba)
-
-theorem weightedContinuant_high_reverse_le {l r : ℚ} {a b : ℕ} (mid : List ℕ)
-    (hpos : ∀ x ∈ mid, 0 < x) (hrl : r ≤ l) (hab : a < b) :
-    weightedContinuant l r (a :: (mid ++ [b])).reverse ≤
-      weightedContinuant l r (a :: (mid ++ [b])) := by
-  rcases eq_or_lt_of_le hrl with he | he
-  · subst l
-    exact le_of_eq (weightedContinuant_reverse_equal_boundary _ _)
-  · exact le_of_lt (weightedContinuant_high_reverse_lt mid hpos he hab)
 
 /-- A minimum is oriented increasingly at low unequal boundaries. Equal
 boundaries are exactly the case in which reversing preserves the objective. -/

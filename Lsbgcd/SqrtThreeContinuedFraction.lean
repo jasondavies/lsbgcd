@@ -8,17 +8,15 @@ public import Lsbgcd.PaperCorollaries
 /-!
 # The continued-fraction bridge for the sum-of-squares conjecture
 
-The truncations `[1; 1,2,1,2,…]` converge to `√3`. Their denominators,
-after skipping the first convergent, are the recurrence terms used in the
-sum-of-squares theorem. The proof gives an explicit geometric error bound.
+The truncations `sqrtThreeWord n = [1; 1,2,1,2,…]` converge to `√3`. Their
+denominators, after skipping the first convergent, are the recurrence terms
+`sqrtThreeDenominator` used in the sum-of-squares theorem
+(`convergent_sqrtThreeWord_denominator`). The proof gives an explicit
+geometric error bound.
 -/
 namespace Lsbgcd
 
 open Filter
-
-/-- The prefix `[1; 1,2,1,2,…]` with `n` entries after the semicolon. -/
-def sqrtThreeWord (n : ℕ) : List ℕ :=
-  1 :: (List.range n).map (fun k => if k % 2 = 0 then 1 else 2)
 
 /-- The real value of the `n`th finite continued fraction, starting with `1`. -/
 noncomputable def sqrtThreeConvergent (n : ℕ) : ℝ :=
@@ -30,7 +28,8 @@ private theorem sqrtThreeWord_positive (n : ℕ) :
   simp only [sqrtThreeWord, List.mem_cons, List.mem_map] at ha
   rcases ha with rfl | ⟨k, _, rfl⟩
   · decide
-  · split_ifs <;> decide
+  · unfold sqrtThreeDigit
+    split_ifs <;> decide
 
 /-- Connect the real-valued approximants to the paper's rational CF evaluator. -/
 theorem sqrtThreeConvergent_eq_continuedFraction (n : ℕ) :
@@ -38,16 +37,11 @@ theorem sqrtThreeConvergent_eq_continuedFraction (n : ℕ) :
   rw [continuedFraction_eq_convergent (sqrtThreeWord_positive n)]
   simp [sqrtThreeConvergent]
 
-/-- The precise indexing of the denominator sequence from the conjecture. -/
-theorem sqrtThreeConvergent_denominator (n : ℕ) :
-    (convergent (sqrtThreeWord (n + 1))).2 = squareNumerator n :=
-  squareNumerator_sqrtThree_denominator n
-
 private theorem sqrtThree_tail_add_two (n : ℕ) :
-    (List.range (n + 2)).map (fun k => if k % 2 = 0 then 1 else 2) =
-      1 :: 2 :: (List.range n).map (fun k => if k % 2 = 0 then 1 else 2) := by
+    (List.range (n + 2)).map sqrtThreeDigit =
+      1 :: 2 :: (List.range n).map sqrtThreeDigit := by
   rw [show n + 2 = 2 + n by omega, List.range_add]
-  norm_num [List.map_map, Function.comp_def, List.range_succ]
+  norm_num [List.map_map, Function.comp_def, List.range_succ, sqrtThreeDigit]
 
 /-- Advancing by one period acts by the Pell matrix `[[2,3],[1,2]]`. -/
 theorem sqrtThreeConvergent_pair_add_two (n : ℕ) :
@@ -57,6 +51,7 @@ theorem sqrtThreeConvergent_pair_add_two (n : ℕ) :
   simp only [sqrtThreeWord, sqrtThree_tail_add_two, convergent]
   congr 1 <;> ring
 
+/-- Every truncation is at least its leading partial quotient `1`. -/
 theorem sqrtThreeConvergent_ge_one (n : ℕ) : 1 ≤ sqrtThreeConvergent n := by
   have hp := positive_convergent (sqrtThreeWord_positive n)
   have hq := positive_convergent_denominator (sqrtThreeWord_positive n)
@@ -79,15 +74,10 @@ theorem sqrtThreeConvergent_add_two (n : ℕ) :
   simp only [Nat.cast_add, Nat.cast_mul, Nat.cast_ofNat]
   field_simp
 
-private theorem sqrtThree_bounds : 1 ≤ Real.sqrt 3 ∧ Real.sqrt 3 ≤ 2 := by
-  have hs := Real.sq_sqrt (by norm_num : (0 : ℝ) ≤ 3)
-  have hpos := Real.sqrt_nonneg (3 : ℝ)
-  constructor <;> nlinarith
-
 private theorem sqrtThree_mobius_contract {x : ℝ} (hx : 1 ≤ x) :
     |(2 * x + 3) / (x + 2) - Real.sqrt 3| ≤ 1 / 3 * |x - Real.sqrt 3| := by
   have hs := Real.sq_sqrt (by norm_num : (0 : ℝ) ≤ 3)
-  obtain ⟨hs1, hs2⟩ := sqrtThree_bounds
+  obtain ⟨hs1, hs2⟩ := sqrt_three_bounds
   have hd : 0 < x + 2 := by linarith
   have he : (2 * x + 3) / (x + 2) - Real.sqrt 3 =
       (2 - Real.sqrt 3) / (x + 2) * (x - Real.sqrt 3) := by
@@ -104,11 +94,11 @@ theorem sqrtThreeConvergent_error (n : ℕ) :
   induction n using Nat.strong_induction_on with
   | h n ih =>
     rcases n with _ | (_ | n)
-    · obtain ⟨hs1, hs2⟩ := sqrtThree_bounds
-      norm_num [sqrtThreeConvergent, sqrtThreeWord, convergent]
+    · obtain ⟨hs1, hs2⟩ := sqrt_three_bounds
+      norm_num [sqrtThreeConvergent, sqrtThreeWord, sqrtThreeDigit, convergent]
       exact abs_le.mpr ⟨by linarith, by linarith⟩
-    · obtain ⟨hs1, hs2⟩ := sqrtThree_bounds
-      norm_num [sqrtThreeConvergent, sqrtThreeWord, convergent]
+    · obtain ⟨hs1, hs2⟩ := sqrt_three_bounds
+      norm_num [sqrtThreeConvergent, sqrtThreeWord, sqrtThreeDigit, convergent]
       exact abs_le.mpr ⟨by linarith, by linarith⟩
     · rw [sqrtThreeConvergent_add_two]
       calc

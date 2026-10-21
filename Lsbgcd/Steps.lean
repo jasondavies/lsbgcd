@@ -12,17 +12,36 @@ at `e = 0`. Transformations act before the possible interchange.
 -/
 namespace Lsbgcd
 
+/-- Undo an A-step with exponent `e`: the input `(2^e x + y, x)` whose
+remainder `u − 2^e v` is `y`. -/
 def inverseA (e : ℕ) (p : ℕ × ℕ) : ℕ × ℕ := (2 ^ e * p.1 + p.2, p.1)
+/-- Undo a B-step with exponent `e`: the input `(2^(e+1) x − y, x)` whose
+remainder `2^(e+1) v − u` is `y`. -/
 def inverseB (e : ℕ) (p : ℕ × ℕ) : ℕ × ℕ := (2 ^ (e + 1) * p.1 - p.2, p.1)
+/-- Swap the two coordinates. -/
 def interchange (p : ℕ × ℕ) : ℕ × ℕ := (p.2, p.1)
 
+/-- On input `(u, v)`, the loop selects exponent `e` and takes branch A
+(subtracting `2^e v`); ties go to A. -/
 def ChoosesA (e u v : ℕ) : Prop :=
   0 < v ∧ 2 ^ e * v ≤ u ∧ u < 2 ^ (e + 1) * v ∧
     u - 2 ^ e * v ≤ 2 ^ (e + 1) * v - u
 
+/-- On input `(u, v)`, the loop selects exponent `e` and takes branch B
+(subtracting from `2^(e+1) v`). -/
 def ChoosesB (e u v : ℕ) : Prop :=
   0 < v ∧ 2 ^ e * v ≤ u ∧ u < 2 ^ (e + 1) * v ∧
     2 ^ (e + 1) * v - u < u - 2 ^ e * v
+
+theorem choosesA_ordered {e u v : ℕ} (h : ChoosesA e u v) : 0 < v ∧ v ≤ u := by
+  obtain ⟨hv, hl, -, -⟩ := h
+  have : 1 ≤ 2 ^ e := Nat.one_le_two_pow
+  exact ⟨hv, by nlinarith⟩
+
+theorem choosesB_ordered {e u v : ℕ} (h : ChoosesB e u v) : 0 < v ∧ v ≤ u := by
+  obtain ⟨hv, hl, -, -⟩ := h
+  have : 1 ≤ 2 ^ e := Nat.one_le_two_pow
+  exact ⟨hv, by nlinarith⟩
 
 theorem shift_eq {e u v : ℕ} (hv : 0 < v)
     (hl : 2 ^ e * v ≤ u) (hu : u < 2 ^ (e + 1) * v) : shift u v = e := by
@@ -72,10 +91,18 @@ theorem choosesB_step {e u v : ℕ} (h : ChoosesB e u v) :
 /-- The order used in §4: compare first coordinates and coordinate sums. -/
 def Smaller (p q : ℕ × ℕ) : Prop := p.1 ≤ q.1 ∧ p.1 + p.2 ≤ q.1 + q.2
 
+theorem smaller_refl (p : ℕ × ℕ) : Smaller p p := ⟨le_rfl, le_rfl⟩
+
 theorem smaller_trans {p q r : ℕ × ℕ} (hpq : Smaller p q) (hqr : Smaller q r) :
     Smaller p r := ⟨hpq.1.trans hqr.1, hpq.2.trans hqr.2⟩
 
+/-- Lexicographic order on pairs: first coordinates, then second coordinates. -/
 def LexLE (p q : ℕ × ℕ) : Prop := p.1 < q.1 ∨ (p.1 = q.1 ∧ p.2 ≤ q.2)
+
+theorem lexLE_trans {p q r : ℕ × ℕ} (hpq : LexLE p q) (hqr : LexLE q r) :
+    LexLE p r := by
+  unfold LexLE at *
+  omega
 
 theorem smaller_lex {p q : ℕ × ℕ} (h : Smaller p q) : LexLE p q := by
   unfold Smaller at h

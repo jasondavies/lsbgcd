@@ -4,12 +4,24 @@ public import Lsbgcd.RamharterBoundary
 
 @[expose] public section
 
-/-! # Alternating endpoint choices in the general permutation proof -/
+/-!
+# Alternating endpoint choices in the general permutation proof
+
+The induction in `RamharterSort.lean` alternates between low and high
+boundary contexts. A Boolean flag `high` selects the context
+(`RamharterContext`) and the matching order on digits (`ramharterKey`), so
+that each step can be stated once: `ramharterContext_step` peels the two
+next extreme digits and flips the flag.
+-/
 namespace Lsbgcd
 
 /-- Ascending order for low boundaries, descending order for high ones. -/
 def ramharterKey (high : Bool) (a : ℕ) : ℤ := if high then -(a : ℤ) else a
 
+/-- The boundary context selected by the flag: `HighBoundaryContext` when
+`high` is true and `LowBoundaryContext` otherwise. In a low context the next
+two endpoints are the two least remaining digits; in a high context they are
+the two greatest. -/
 def RamharterContext (high : Bool) (lo hi : ℕ) (l r : ℚ) : Prop :=
   if high then HighBoundaryContext lo hi l r else LowBoundaryContext lo hi l r
 

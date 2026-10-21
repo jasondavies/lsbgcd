@@ -4,7 +4,14 @@ public import Lsbgcd.Ramharter
 
 @[expose] public section
 
-/-! # Structural equations for the general Ramharter arrangement -/
+/-!
+# Structural equations for the general Ramharter arrangement
+
+`ramharterWord_strip_four` peels the two least and two greatest digits, and
+`ramharterWord_two` rephrases this as a two-endpoint recursion on the
+reversed remainder, which is the form the induction in `RamharterSort.lean`
+follows.
+-/
 namespace Lsbgcd
 
 /-- Shifting every rank commutes with the recursive rank arrangement. -/

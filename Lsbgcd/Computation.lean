@@ -10,6 +10,10 @@ public import Lsbgcd.PartialReduction
 Every actual nonterminal step has one of the four transformations in §2,
 and a valid partial computation contributes exactly its length to the
 iteration count.
+
+Together with Validity and PartialReduction, this module formalises §§3–4 as
+the paper states them. The proof of Theorem 1.1 does not depend on it: it uses
+the direct reduction in Reduction.lean.
 -/
 namespace Lsbgcd
 
@@ -17,32 +21,9 @@ namespace Transformation
 
 theorem valid_input {s : Transformation} {p : ℕ × ℕ} (h : ValidOn s p) :
     0 < (s.inverse p).2 ∧ (s.inverse p).2 ≤ (s.inverse p).1 := by
-  have hpow : ∀ e : ℕ, 1 ≤ 2 ^ e := fun e => Nat.one_le_pow e 2 (by decide)
   cases s with
-  | A e =>
-    refine ⟨h.1.1, ?_⟩
-    have hl := h.1.2.1
-    have hm := Nat.mul_le_mul_right (inverseA e p).2 (hpow e)
-    change (inverseA e p).2 ≤ (inverseA e p).1
-    omega
-  | B e =>
-    refine ⟨h.1.1, ?_⟩
-    have hl := h.1.2.1
-    have hm := Nat.mul_le_mul_right (inverseB e p).2 (hpow e)
-    change (inverseB e p).2 ≤ (inverseB e p).1
-    omega
-  | IA e =>
-    refine ⟨h.1.1, ?_⟩
-    have hl := h.1.2.1
-    have hm := Nat.mul_le_mul_right (inverseA e (interchange p)).2 (hpow e)
-    change (inverseA e (interchange p)).2 ≤ (inverseA e (interchange p)).1
-    omega
-  | IB e =>
-    refine ⟨h.1.1, ?_⟩
-    have hl := h.1.2.1
-    have hm := Nat.mul_le_mul_right (inverseB e (interchange p)).2 (hpow e)
-    change (inverseB e (interchange p)).2 ≤ (inverseB e (interchange p)).1
-    omega
+  | A e | IA e => exact choosesA_ordered h.1
+  | B e | IB e => exact choosesB_ordered h.1
 
 theorem valid_iterations {s : Transformation} {p : ℕ × ℕ} (h : ValidOn s p) :
     iterations (s.inverse p).1 (s.inverse p).2 = iterations p.1 p.2 + 1 := by
@@ -86,6 +67,20 @@ theorem exists_valid_step {u v : ℕ} (hv : 0 < v) (hvu : v ≤ u) :
       exact ⟨by simpa only [interchange, hinv] using hc, hi'⟩
 
 end Transformation
+
+theorem inverseComputation_append (ss ts : List Transformation) (p : ℕ × ℕ) :
+    inverseComputation (ss ++ ts) p =
+      inverseComputation ts (inverseComputation ss p) := by
+  induction ss generalizing p with
+  | nil => rfl
+  | cons s ss ih => exact ih (s.inverse p)
+
+theorem validComputation_append (ss ts : List Transformation) (p : ℕ × ℕ) :
+    ValidComputation (ss ++ ts) p ↔
+      ValidComputation ss p ∧ ValidComputation ts (inverseComputation ss p) := by
+  induction ss generalizing p with
+  | nil => simp [ValidComputation, inverseComputation]
+  | cons s ss ih => simp [ValidComputation, inverseComputation, ih, and_assoc]
 
 /-- A valid partial computation contributes exactly one loop iteration per
 step, regardless of whether its endpoint is terminal. -/

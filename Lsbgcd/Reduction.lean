@@ -1,6 +1,6 @@
 module
 
-public import Lsbgcd.ProofObligations
+public import Lsbgcd.Specification
 
 @[expose] public section
 
@@ -130,10 +130,5 @@ theorem reduction_to_admissible : ReductionToAdmissible := by
   refine ⟨quotientWord u v hvu, quotientWord_admissible u v hvu, ?_,
     smaller_lex (quotientWord_smaller u v hu hvu)⟩
   rw [quotientWord_length, iterations_of_ordered hvu]
-
-/-- The reduction step in Theorem 1.1; Minimality.lean supplies the
-continuant-minimisation argument and obtains the unconditional result. -/
-theorem main_of_admissible_minimality (h : AdmissibleMinimality) : MainTheorem :=
-  main_of_reduction_and_minimality reduction_to_admissible h
 
 end Lsbgcd

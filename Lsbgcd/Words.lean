@@ -1,7 +1,7 @@
 module
 
 public import Lsbgcd.Steps
-public import Lsbgcd.Continuants
+public import Lsbgcd.ContinuantOrder
 
 @[expose] public section
 
@@ -38,14 +38,19 @@ theorem admissible_tail {a : ℕ} {as : List ℕ} (h : Admissible (a :: as)) :
   | nil => trivial
   | cons b bs => exact h.2.2
 
-theorem admissible_convergent {as : List ℕ} (h : Admissible as) :
-    0 < (convergent as).1 ∧ (convergent as).2 ≤ (convergent as).1 := by
+theorem admissible_digits {as : List ℕ} (h : Admissible as) :
+    ∀ a ∈ as, a = 1 ∨ a = 2 := by
   induction as with
-  | nil => norm_num [convergent]
+  | nil => simp
   | cons a as ih =>
-    obtain ⟨hx, hxy⟩ := ih (admissible_tail h)
-    obtain ha | ha := admissible_head h <;> subst a <;>
-      simp only [convergent] <;> constructor <;> omega
+    intro b hb
+    rcases List.mem_cons.1 hb with rfl | hb
+    · exact admissible_head h
+    · exact ih (admissible_tail h) b hb
+
+theorem admissible_convergent {as : List ℕ} (h : Admissible as) :
+    0 < (convergent as).1 ∧ (convergent as).2 ≤ (convergent as).1 :=
+  positive_convergent fun a ha => by rcases admissible_digits h a ha with rfl | rfl <;> decide
 
 theorem admissible_one_bound {as : List ℕ} (h : Admissible (1 :: as)) :
     2 * (convergent as).2 ≤ (convergent as).1 := by

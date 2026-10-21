@@ -10,11 +10,12 @@ public import Lsbgcd.Reduction
 
 Among ordered positive inputs taking exactly `n` iterations, the alternating
 word ending in 1 minimises the sum of the squares of the two inputs.
-The sequence is specified by the explicit recurrence printed on p. 484.
-The paper calls it the numerator sequence of convergents to `√3`, but its
-initial values and recurrence instead give the denominator sequence after
-skipping the first convergent. `squareNumerator_sqrtThree_denominator` proves
-the finite continued-fraction identity using the digits `[1; 1,2,1,2,…]`.
+The sequence `sqrtThreeDenominator` is specified by the explicit recurrence
+printed on p. 484. The paper calls it the numerator sequence of convergents to
+`√3`, but its initial values and recurrence instead give the denominator
+sequence after skipping the first convergent.
+`convergent_sqrtThreeWord_denominator` proves the finite continued-fraction
+identity using the digits `[1; 1,2,1,2,…]`.
 `SqrtThreeContinuedFraction.lean` proves that these fractions converge to `√3`.
 -/
 namespace Lsbgcd
@@ -22,31 +23,18 @@ namespace Lsbgcd
 /-- The squared Euclidean size of an input pair. -/
 def squaredSize (p : ℕ × ℕ) : ℕ := p.1 ^ 2 + p.2 ^ 2
 
-/-- The order used for the paper's reduction also controls squared size. -/
-theorem smaller_squaredSize {p q : ℕ × ℕ} (hp : p.2 ≤ p.1)
-    (h : Smaller p q) : squaredSize p ≤ squaredSize q := by
+/-- The order used for the paper's reduction also controls squared size, and
+equal squared sizes force equal inputs. -/
+private theorem smaller_squaredSize_le_and_eq {p q : ℕ × ℕ} (hp : p.2 ≤ p.1)
+    (h : Smaller p q) :
+    squaredSize p ≤ squaredSize q ∧ (squaredSize p = squaredSize q → p = q) := by
   rcases p with ⟨x, y⟩
   rcases q with ⟨a, b⟩
   obtain ⟨hx, hs⟩ := h
   dsimp [squaredSize] at *
   by_cases hy : y ≤ b
-  · nlinarith
-  · have hy' : b ≤ y := by omega
-    obtain ⟨t, rfl⟩ := Nat.exists_eq_add_of_le hy'
-    obtain ⟨r, rfl⟩ := Nat.exists_eq_add_of_le hp
-    have ha : b + t + r + t ≤ a := by omega
-    have hsq : (b + t + r + t) ^ 2 ≤ a ^ 2 := by nlinarith
-    nlinarith
-
-/-- Equality in squared size makes this reduction an equality of inputs. -/
-theorem smaller_squaredSize_eq {p q : ℕ × ℕ} (hp : p.2 ≤ p.1)
-    (h : Smaller p q) (he : squaredSize p = squaredSize q) : p = q := by
-  rcases p with ⟨x, y⟩
-  rcases q with ⟨a, b⟩
-  obtain ⟨hx, hs⟩ := h
-  dsimp [squaredSize] at *
-  by_cases hy : y ≤ b
-  · have hxa : x = a := by nlinarith
+  · refine ⟨by nlinarith, fun he => ?_⟩
+    have hxa : x = a := by nlinarith
     have hyb : y = b := by nlinarith
     simp [hxa, hyb]
   · have hy' : b ≤ y := by omega
@@ -55,14 +43,26 @@ theorem smaller_squaredSize_eq {p q : ℕ × ℕ} (hp : p.2 ≤ p.1)
     have ha : b + t + r + t ≤ a := by omega
     have hsq : (b + t + r + t) ^ 2 ≤ a ^ 2 := by nlinarith
     have ht : 0 < t := by omega
+    refine ⟨by nlinarith, fun he => ?_⟩
     exfalso
     nlinarith
+
+/-- The order used for the paper's reduction also controls squared size. -/
+theorem smaller_squaredSize {p q : ℕ × ℕ} (hp : p.2 ≤ p.1)
+    (h : Smaller p q) : squaredSize p ≤ squaredSize q :=
+  (smaller_squaredSize_le_and_eq hp h).1
+
+/-- Equality in squared size makes this reduction an equality of inputs. -/
+theorem smaller_squaredSize_eq {p q : ℕ × ℕ} (hp : p.2 ≤ p.1)
+    (h : Smaller p q) (he : squaredSize p = squaredSize q) : p = q :=
+  (smaller_squaredSize_le_and_eq hp h).2 he
 
 /-- Alternating admissible word ending in 1, with exactly `n` digits. -/
 def squareWord (n : ℕ) : List ℕ :=
   if n % 2 = 0 then repeat21 (n / 2) else repeat12 (n / 2) ++ [1]
 
-/-- The proposed minimiser, extended to zero iterations by `(1,0)`. -/
+/-- The sum-of-squares minimiser for `n` iterations (proved below), extended
+to zero iterations by `(1,0)`. -/
 def squareCandidate (n : ℕ) : ℕ × ℕ := convergent (squareWord n)
 
 @[simp] theorem squareWord_even (k : ℕ) : squareWord (2 * k) = repeat21 k := by
@@ -143,12 +143,15 @@ private theorem square_block_difference (i j : ℕ) :
   simp only [squaredSize]
   ring
 
+/-- Among even-length words `(12)^i (21)^j`, the alternating word `(21)^(i+j)`
+has the least squared size. -/
 theorem square_block_minimal (i j : ℕ) :
     squaredSize (convergent (repeat21 (i + j))) ≤
       squaredSize (convergent (repeat12 i ++ repeat21 j)) := by
   rw [square_block_difference]
   omega
 
+/-- The alternating word is the only minimiser in the family `(12)^i (21)^j`. -/
 theorem square_block_eq_iff (i j : ℕ) :
     squaredSize (convergent (repeat12 i ++ repeat21 j)) =
       squaredSize (convergent (repeat21 (i + j))) ↔ i = 0 := by
@@ -238,21 +241,28 @@ theorem sum_squares_equality_iff {u v : ℕ} (hu : 0 < u) (hvu : v ≤ u) :
     change squaredSize (u, v) = _
     rw [he]
 
+/-- The `k`th partial quotient after the initial `1` in `√3 = [1; 1,2,1,2,…]`. -/
+def sqrtThreeDigit (k : ℕ) : ℕ := if k % 2 = 0 then 1 else 2
+
+/-- The prefix `[1; 1,2,1,2,…]` with `n` entries after the semicolon. -/
+def sqrtThreeWord (n : ℕ) : List ℕ := 1 :: (List.range n).map sqrtThreeDigit
+
 /-- Successive candidates are obtained by alternating A₀ and A₁. -/
 theorem squareWord_succ (n : ℕ) :
-    squareWord (n + 1) = (if n % 2 = 0 then 1 else 2) :: squareWord n := by
+    squareWord (n + 1) = sqrtThreeDigit n :: squareWord n := by
   by_cases h : n % 2 = 0
   · obtain ⟨k, hk⟩ : ∃ k, n = 2 * k := ⟨n / 2, by omega⟩
     subst n
-    simp [squareWord_even, squareWord_odd, repeat12_one]
+    simp [sqrtThreeDigit, squareWord_even, squareWord_odd, repeat12_one]
   · obtain ⟨k, hk⟩ : ∃ k, n = 2 * k + 1 := ⟨n / 2, by omega⟩
     subst n
     rw [show 2 * k + 1 + 1 = 2 * (k + 1) by omega]
-    simp [squareWord_even, squareWord_odd, repeat21, repeat12_one, Nat.add_mod]
+    simp [sqrtThreeDigit, squareWord_even, squareWord_odd, repeat21, repeat12_one,
+      Nat.add_mod]
 
 theorem squareCandidate_succ (n : ℕ) :
     squareCandidate (n + 1) =
-      ((if n % 2 = 0 then 1 else 2) * (squareCandidate n).1 + (squareCandidate n).2,
+      (sqrtThreeDigit n * (squareCandidate n).1 + (squareCandidate n).2,
         (squareCandidate n).1) := by
   simp only [squareCandidate, squareWord_succ, convergent]
 
@@ -262,68 +272,72 @@ theorem squareCandidate_positive {n : ℕ} (hn : 0 < n) :
   rw [squareCandidate_succ]
   exact (squareCandidate_ordered k).1
 
-/-- The explicit sequence `p₀ = 1, p₁ = 3` from the conjecture on p. 484.
-The coefficient is 1 at even indices and 2 at odd indices. -/
-def squareNumerator : ℕ → ℕ
+/-- The sequence `p₀ = 1, p₁ = 3, p₂ = 4, p₃ = 11, …` printed in the conjecture
+on p. 484, where `pₙ₊₂ = pₙ₊₁ + pₙ` for even `n` and `pₙ₊₂ = 2pₙ₊₁ + pₙ` for odd
+`n`. The paper's prose calls `pₙ` a numerator, but these are the denominators of
+the convergents `[1;1]`, `[1;1,2]`, `[1;1,2,1]`, … of `√3`
+(`convergent_sqrtThreeWord_denominator`). -/
+def sqrtThreeDenominator : ℕ → ℕ
   | 0 => 1
   | 1 => 3
-  | n + 2 => (if n % 2 = 0 then 1 else 2) * squareNumerator (n + 1) + squareNumerator n
+  | n + 2 => (if n % 2 = 0 then 1 else 2) * sqrtThreeDenominator (n + 1) + sqrtThreeDenominator n
 
-@[simp] theorem squareNumerator_zero : squareNumerator 0 = 1 := rfl
-@[simp] theorem squareNumerator_one : squareNumerator 1 = 3 := rfl
+@[simp] theorem sqrtThreeDenominator_zero : sqrtThreeDenominator 0 = 1 := rfl
+@[simp] theorem sqrtThreeDenominator_one : sqrtThreeDenominator 1 = 3 := rfl
 
 /-- The even half of the paper's printed recurrence. -/
-theorem squareNumerator_even (k : ℕ) :
-    squareNumerator (2 * k + 2) = squareNumerator (2 * k + 1) + squareNumerator (2 * k) := by
-  rw [squareNumerator]
+theorem sqrtThreeDenominator_even (k : ℕ) :
+    sqrtThreeDenominator (2 * k + 2) =
+      sqrtThreeDenominator (2 * k + 1) + sqrtThreeDenominator (2 * k) := by
+  rw [sqrtThreeDenominator]
   simp
 
 /-- The odd half of the paper's printed recurrence. -/
-theorem squareNumerator_odd (k : ℕ) :
-    squareNumerator (2 * k + 3) =
-      2 * squareNumerator (2 * k + 2) + squareNumerator (2 * k + 1) := by
-  change squareNumerator ((2 * k + 1) + 2) = _
-  rw [squareNumerator]
+theorem sqrtThreeDenominator_odd (k : ℕ) :
+    sqrtThreeDenominator (2 * k + 3) =
+      2 * sqrtThreeDenominator (2 * k + 2) + sqrtThreeDenominator (2 * k + 1) := by
+  change sqrtThreeDenominator ((2 * k + 1) + 2) = _
+  rw [sqrtThreeDenominator]
   simp [Nat.add_mod]
 
 /-- The alternating candidates are precisely consecutive terms of the recurrence. -/
-theorem squareCandidate_numerators (n : ℕ) :
-    squareCandidate (n + 2) = (squareNumerator (n + 1), squareNumerator n) := by
+theorem squareCandidate_eq_sqrtThreeDenominator (n : ℕ) :
+    squareCandidate (n + 2) = (sqrtThreeDenominator (n + 1), sqrtThreeDenominator n) := by
   induction n with
-  | zero => norm_num [squareCandidate, squareWord, repeat21, convergent, squareNumerator]
+  | zero => norm_num [squareCandidate, squareWord, repeat21, convergent, sqrtThreeDenominator]
   | succ n ih =>
     rw [show n + 1 + 2 = (n + 2) + 1 by omega, squareCandidate_succ, ih]
-    simp [squareNumerator]
+    simp [sqrtThreeDigit, sqrtThreeDenominator]
 
 private theorem squareWord_reverse (n : ℕ) :
-    (squareWord n).reverse = (List.range n).map (fun k => if k % 2 = 0 then 1 else 2) := by
+    (squareWord n).reverse = (List.range n).map sqrtThreeDigit := by
   induction n with
   | zero => simp [squareWord, repeat21]
   | succ n ih => simp [squareWord_succ, List.range_succ, ih]
 
 /-- The recurrence terms are continuants of the alternating words. -/
-theorem squareNumerator_continuant (n : ℕ) :
-    continuant (squareWord (n + 1)) = squareNumerator n := by
+theorem continuant_squareWord (n : ℕ) :
+    continuant (squareWord (n + 1)) = sqrtThreeDenominator n := by
   cases n with
   | zero => norm_num [continuant, squareWord, repeat12, convergent]
   | succ n =>
     simpa [squareCandidate, continuant] using
-      congrArg Prod.fst (squareCandidate_numerators n)
+      congrArg Prod.fst (squareCandidate_eq_sqrtThreeDenominator n)
 
 /-- Correction to the prose on p. 484: `pₙ` is the denominator of the
 truncation `[1; 1,2,1,2,…]` with `n+1` partial quotients after the semicolon.
 These are the usual continued-fraction digits of `√3`. -/
-theorem squareNumerator_sqrtThree_denominator (n : ℕ) :
-    (convergent (1 :: (List.range (n + 1)).map
-      (fun k => if k % 2 = 0 then 1 else 2))).2 = squareNumerator n := by
-  rw [← squareWord_reverse, convergent_denominator, continuant_reverse,
-    squareNumerator_continuant]
+theorem convergent_sqrtThreeWord_denominator (n : ℕ) :
+    (convergent (sqrtThreeWord (n + 1))).2 = sqrtThreeDenominator n := by
+  rw [sqrtThreeWord, ← squareWord_reverse, convergent_denominator, continuant_reverse,
+    continuant_squareWord]
 
 /-- Positive ordered input attaining the least squared size at exactly `n` iterations. -/
 def IsSumSquaresMinimizer (n : ℕ) (p : ℕ × ℕ) : Prop :=
   0 < p.2 ∧ p.2 ≤ p.1 ∧ iterations p.1 p.2 = n ∧
     ∀ u v : ℕ, 0 < v → v ≤ u → iterations u v = n → squaredSize p ≤ u ^ 2 + v ^ 2
 
+/-- For every positive `n`, the alternating candidate minimises the squared size. -/
 theorem squareCandidate_minimizer {n : ℕ} (hn : 0 < n) :
     IsSumSquaresMinimizer n (squareCandidate n) := by
   refine ⟨squareCandidate_positive hn, (squareCandidate_ordered n).2,
@@ -334,9 +348,9 @@ theorem squareCandidate_minimizer {n : ℕ} (hn : 0 < n) :
 
 /-- The sum-of-squares conjecture of §6, using its explicit printed recurrence. -/
 theorem sum_squares_conjecture {n : ℕ} (hn : 2 ≤ n) :
-    IsSumSquaresMinimizer n (squareNumerator (n - 1), squareNumerator (n - 2)) := by
+    IsSumSquaresMinimizer n (sqrtThreeDenominator (n - 1), sqrtThreeDenominator (n - 2)) := by
   have h := squareCandidate_minimizer (show 0 < n by omega)
-  have he := squareCandidate_numerators (n - 2)
+  have he := squareCandidate_eq_sqrtThreeDenominator (n - 2)
   rw [show n - 2 + 2 = n by omega, show n - 2 + 1 = n - 1 by omega] at he
   rwa [he] at h
 

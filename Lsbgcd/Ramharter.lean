@@ -9,18 +9,22 @@ public import Lsbgcd.Continuants
 
 The theorem in the paper concerns every multiset of positive integer digits,
 not only the admissible binary words used by the GCD analysis. Its full
-statement is recorded below and proved in `RamharterSort.lean`. The specialized
-binary result is also proved independently in `Minimality.lean`.
+statement is recorded below and proved in `RamharterSort.lean`, whose header
+maps out the supporting modules. The specialised binary result is also proved
+independently in `Minimality.lean`.
 
 The displayed three-case permutation is represented by stripping four ranks
 at a time: the two least and the two greatest remaining entries are placed
-at the two ends. Empty and singleton inputs are defined explicitly.
+at the two ends. Inputs with at most three entries are the base cases.
 -/
 namespace Lsbgcd
 
-/-- Zero-based ranks in the minimizing arrangement, starting at rank `lo`.
-For at least four entries, the outside ranks are `lo, hi, ..., hi-1, lo+1`.
-This recursively gives all three cases in the paper's displayed formula. -/
+/-- `ramharterIndices lo n` arranges the `n` ranks `lo, …, hi`, where
+`hi = lo + n − 1`, in the minimising order. For `n ≥ 4` it is
+`lo, hi, (ramharterIndices (lo + 2) (n − 4)), hi − 1, lo + 1`; that is, the two
+least and two greatest remaining ranks are placed at the ends and the rule
+recurses inward. This recursion gives all three cases of the paper's displayed
+formula for Theorem 5.1. -/
 def ramharterIndices (lo : ℕ) : ℕ → List ℕ
   | 0 => []
   | 1 => [lo]
@@ -30,7 +34,8 @@ def ramharterIndices (lo : ℕ) : ℕ → List ℕ
       [lo + n + 2, lo + 1]
 
 /-- Apply the rank arrangement to a sorted list. The use of `getD` makes
-this a total definition; the rank bound below shows that defaults are unused. -/
+this a total definition; every rank is less than `bs.length`, so the default
+is never used (see `ramharterIndices_bounds`). -/
 def ramharterWord (bs : List ℕ) : List ℕ :=
   (ramharterIndices 0 bs.length).map (fun i => bs.getD i 0)
 
@@ -93,9 +98,8 @@ theorem ramharterIndices_perm (lo n : ℕ) :
           (lo :: (lo + 1) :: List.range' (lo + 2) n) ++ [lo + n + 2, lo + n + 3] := by
         rw [List.range'_concat, List.range'_concat,
           List.range'_succ, List.range'_succ]
-        simp only [List.cons_append, List.append_assoc,
-          one_mul]
-        congr 3
+        simp only [List.cons_append, List.append_assoc, one_mul]
+        rfl
       rw [hr]
       simp only [ramharterIndices, List.count_append, List.count_cons, List.count_nil]
       rw [hh]
@@ -135,35 +139,6 @@ def RamharterTheorem : Prop :=
     ∀ as, as.Perm bs →
       (continuant as = continuant (ramharterWord bs) ↔
         as = ramharterWord bs ∨ as = (ramharterWord bs).reverse)
-
-private theorem perm_triple_cases (a b c : ℕ) {xs : List ℕ} (h : xs.Perm [a,b,c]) :
-    xs = [a,b,c] ∨ xs = [b,a,c] ∨ xs = [c,b,a] ∨ xs = [b,c,a] ∨
-      xs = [c,a,b] ∨ xs = [a,c,b] := by
-  have hm := List.mem_permutations.mpr h
-  simpa [List.permutations, List.permutationsAux_cons, List.permutationsAux_nil,
-    List.permutationsAux2] using hm
-
-private theorem continuant_three (a b c : ℕ) :
-    continuant [a,b,c] = a * b * c + a + c := by
-  simp [continuant, convergent]
-  ring
-
-/-- The first nontrivial case of the general permutation theorem. Repeated
-entries are allowed, and the equality statement still identifies digit words. -/
-theorem ramharter_triple (a b c : ℕ) (hab : a ≤ b) (hbc : b ≤ c) :
-    IsPermutationMinimum [a,b,c] [a,c,b] ∧
-      ∀ xs, xs.Perm [a,b,c] →
-        (continuant xs = continuant [a,c,b] ↔ xs = [a,c,b] ∨ xs = [b,c,a]) := by
-  constructor
-  · refine ⟨(List.Perm.swap b c []).cons a, ?_⟩
-    intro xs hp
-    rcases perm_triple_cases a b c hp with rfl | rfl | rfl | rfl | rfl | rfl <;>
-      simp [continuant, convergent] <;> nlinarith
-  · intro xs hp
-    rcases perm_triple_cases a b c hp with rfl | rfl | rfl | rfl | rfl | rfl <;>
-      simp only [continuant_three, List.cons.injEq, mul_comm, mul_left_comm,
-        true_and, and_true, or_true, true_or, iff_true] <;>
-      omega
 
 /-- Reversing an interval factors the change in the continuant into one
 factor from the interval and another from the two surrounding words. This

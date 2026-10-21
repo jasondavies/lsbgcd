@@ -15,7 +15,16 @@ the larger coordinate need not decrease (for example on input `(1, 1)`).
 
 namespace Lsbgcd
 
-/-- The exponent selected in the main loop. -/
+/- `Challenge.lean` repeats `shift`, `remainder`, `step`, `run`, `gcd` and
+`iterations` verbatim, together with the four lemmas `run`'s termination proof
+uses: `shift_bounds`, `remainder_lt`, `step_ordered` and `step_decreases`.
+Comparator requires both copies to elaborate to identical constants, so edit
+them only in both files at once. Their proofs avoid `omega` deliberately: it
+creates auxiliary lemmas named after the current module, which can never match
+across the two modules. -/
+
+/-- The exponent `e = ⌊log₂ (u / v)⌋` selected in the main loop, so that
+`2^e v ≤ u < 2^(e+1) v` when `0 < v ≤ u`. -/
 def shift (u v : ℕ) : ℕ := Nat.log 2 (u / v)
 
 theorem shift_bounds {u v : ℕ} (hv : 0 < v) (hvu : v ≤ u) :
@@ -26,11 +35,13 @@ theorem shift_bounds {u v : ℕ} (hv : 0 < v) (hvu : v ≤ u) :
   · exact (Nat.le_div_iff_mul_le hv).1 (Nat.pow_log_le_self 2 hq)
   · exact (Nat.div_lt_iff_lt_mul hv).1 (Nat.lt_pow_succ_log_self (by decide) _)
 
-/-- The least distance to the two adjacent shifted multiples. -/
+/-- The least distance from `u` to the two adjacent shifted multiples
+`2^e v` and `2^(e+1) v`. -/
 def remainder (u v : ℕ) : ℕ :=
   min (u - 2 ^ shift u v * v) (2 ^ (shift u v + 1) * v - u)
 
-/-- One loop iteration, including the interchange. -/
+/-- One loop iteration: replace `(u, v)` by `(v, remainder u v)`, then
+interchange if necessary so that the first coordinate is the larger. -/
 def step (u v : ℕ) : ℕ × ℕ :=
   (max v (remainder u v), min v (remainder u v))
 
@@ -101,10 +112,12 @@ theorem run_gcd (u v : ℕ) (hvu : v ≤ u) :
 termination_by u + v
 decreasing_by exact step_decreases (Nat.pos_of_ne_zero hv) hvu
 
-/-- A total interface that sorts its inputs, including zero inputs. -/
+/-- The value returned by the algorithm, after sorting the inputs. This is a
+total interface, including zero inputs. -/
 def gcd (u v : ℕ) : ℕ := (run (max u v) (min u v)
   (le_trans (min_le_left _ _) (le_max_left _ _))).1
 
+/-- The number of loop iterations the algorithm performs, after sorting the inputs. -/
 def iterations (u v : ℕ) : ℕ := (run (max u v) (min u v)
   (le_trans (min_le_left _ _) (le_max_left _ _))).2
 

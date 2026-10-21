@@ -7,15 +7,17 @@ public import Mathlib
 /-! # Continuants and continued-fraction numerators (§5) -/
 namespace Lsbgcd
 
-/-- Numerator and denominator obtained from a finite continued fraction.
-The empty word corresponds to `(1, 0)`, the terminal inverse computation. -/
+/-- Numerator and denominator of the finite continued fraction
+`a₀ + 1/(a₁ + 1/(⋯ + 1/aₖ))`, by recursion on the first digit: if the tail has
+numerator `p` and denominator `q`, the whole word has `(a₀ p + q, p)`.
+The empty word gives `(1, 0)`, the terminal inverse computation. -/
 def convergent : List ℕ → ℕ × ℕ
   | [] => (1, 0)
   | a :: as =>
     let p := convergent as
     (a * p.1 + p.2, p.1)
 
-/-- The continuant, using the left-end recurrence. -/
+/-- The continuant `K(a₀, …, aₖ)`: the numerator of `convergent`. -/
 def continuant (as : List ℕ) : ℕ := (convergent as).1
 
 @[simp] theorem continuant_nil : continuant [] = 1 := rfl
@@ -42,8 +44,11 @@ theorem convergent_coprime (as : List ℕ) :
 /-- A 2×2 continuant matrix over the integers. -/
 abbrev Mat := Matrix (Fin 2) (Fin 2) ℤ
 
+/-- The matrix `[[a, 1], [1, 0]]` of one partial quotient. -/
 def digitMatrix (a : ℕ) : Mat := !![(a : ℤ), 1; 1, 0]
 
+/-- The product of the digit matrices of a word; its first column is the
+convergent (`wordMatrix_first_column`). -/
 def wordMatrix : List ℕ → Mat
   | [] => 1
   | a :: as => digitMatrix a * wordMatrix as

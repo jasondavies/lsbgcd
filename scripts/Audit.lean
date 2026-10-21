@@ -17,14 +17,11 @@ import all Lsbgcd.MainRecurrence
 import all Lsbgcd.Minimality
 import all Lsbgcd.PaperCorollaries
 import all Lsbgcd.PartialReduction
-import all Lsbgcd.ProofObligations
 import all Lsbgcd.Ramharter
 import all Lsbgcd.RamharterBoundary
 import all Lsbgcd.RamharterExtrema
-import all Lsbgcd.RamharterFinite
 import all Lsbgcd.RamharterMatrix
 import all Lsbgcd.RamharterMode
-import all Lsbgcd.RamharterOrientation
 import all Lsbgcd.RamharterShape
 import all Lsbgcd.RamharterSort
 import all Lsbgcd.RamharterSortingCore

@@ -13,23 +13,11 @@ This gives a direct binary-continuant reduction without assuming Ramharter.
 -/
 namespace Lsbgcd
 
-theorem smaller_refl (p : ℕ × ℕ) : Smaller p p := ⟨le_rfl, le_rfl⟩
-
-theorem repeat21_add (i j : ℕ) : repeat21 (i + j) = repeat21 i ++ repeat21 j := by
-  induction i with
-  | zero => simp [repeat21]
-  | succ i ih => simpa [repeat21, Nat.succ_add] using congrArg (fun as => 2 :: 1 :: as) ih
-
 theorem two_repeat12 (n : ℕ) (as : List ℕ) :
     (2 :: repeat12 n) ++ as = repeat21 n ++ 2 :: as := by
   induction n with
   | zero => simp [repeat12, repeat21]
   | succ n ih => simpa [repeat12, repeat21] using congrArg (fun as => 2 :: 1 :: as) ih
-
-theorem repeat12_one (n : ℕ) : repeat12 n ++ [1] = 1 :: repeat21 n := by
-  induction n with
-  | zero => rfl
-  | succ n ih => simp [repeat12, repeat21, ih]
 
 private def frontierCoeff : ℕ → ℕ × ℕ
   | 0 => (0, 1)
@@ -104,45 +92,6 @@ private theorem prefix_twelve_smaller {as bs : List ℕ}
     Smaller (convergent (1 :: 2 :: as)) (convergent (1 :: 2 :: bs)) := by
   simpa [inverseA, convergent] using inverseA_mono 0 (inverseA_mono 1 h)
 
-/-- An odd alternating word or an even split word dominates every
-admissible word, with exactly the same number of digits. -/
-theorem admissible_frontier (as : List ℕ) (h : Admissible as) :
-    (∃ k, as.length = 2 * k + 1 ∧
-      Smaller (convergent (repeat12 k ++ [1])) (convergent as)) ∨
-    (∃ i j, as.length = 2 * (i + j) ∧
-      Smaller (convergent (repeat12 i ++ repeat21 j)) (convergent as)) := by
-  cases as with
-  | nil => exact Or.inr ⟨0, 0, rfl, smaller_refl _⟩
-  | cons a as =>
-    obtain ha | ha := admissible_head h
-    · subst a
-      cases as with
-      | nil => exact Or.inl ⟨0, rfl, smaller_refl _⟩
-      | cons b bs =>
-        have hb := admissible_head (admissible_tail h)
-        have hn : ¬(1 = 1 ∧ b = 1) := h.2.1
-        have hb2 : b = 2 := by omega
-        subst b
-        have ht := admissible_tail (admissible_tail h)
-        rcases admissible_frontier bs ht with ⟨k, hk, hs⟩ | ⟨i, j, hij, hs⟩
-        · refine Or.inl ⟨k + 1, ?_, ?_⟩
-          · simp only [List.length_cons]; omega
-          · exact prefix_twelve_smaller hs
-        · refine Or.inr ⟨i + 1, j, ?_, ?_⟩
-          · simp only [List.length_cons]; omega
-          · exact prefix_twelve_smaller hs
-    · subst a
-      have ht := admissible_tail h
-      rcases admissible_frontier as ht with ⟨k, hk, hs⟩ | ⟨i, j, hij, hs⟩
-      · refine Or.inr ⟨0, k + 1, ?_, ?_⟩
-        · simp only [List.length_cons]; omega
-        · have hm := prefix_two_smaller hs
-          simpa [repeat12_one, repeat12, repeat21] using hm
-      · refine Or.inl ⟨i + j, ?_, ?_⟩
-        · simp only [List.length_cons]; omega
-        · exact smaller_trans (odd_dominates_two_family i j) (prefix_two_smaller hs)
-termination_by as.length
-
 private theorem first_eq_of_two {as bs : List ℕ}
     (h : Smaller (convergent as) (convergent bs))
     (he : (convergent (2 :: as)).1 = (convergent (2 :: bs)).1) :
@@ -159,8 +108,10 @@ private theorem first_eq_of_twelve {as bs : List ℕ}
   simp only [convergent] at he
   omega
 
-/-- Equality in the numerator forces the word itself to be one of the
-dominating words. This retains the uniqueness information needed in §5. -/
+/-- An odd alternating word or an even split word dominates every admissible
+word with the same number of digits, and equality in the numerator forces the
+word itself to be the dominating word. This retains the uniqueness information
+needed in §5. -/
 theorem admissible_frontier_eq (as : List ℕ) (h : Admissible as) :
     (∃ k, as.length = 2 * k + 1 ∧
       Smaller (convergent (repeat12 k ++ [1])) (convergent as) ∧
@@ -214,5 +165,16 @@ theorem admissible_frontier_eq (as : List ℕ) (h : Admissible as) :
           have hu := (prefix_two_smaller hs).1
           omega
 termination_by as.length
+
+/-- An odd alternating word or an even split word dominates every
+admissible word, with exactly the same number of digits. -/
+theorem admissible_frontier (as : List ℕ) (h : Admissible as) :
+    (∃ k, as.length = 2 * k + 1 ∧
+      Smaller (convergent (repeat12 k ++ [1])) (convergent as)) ∨
+    (∃ i j, as.length = 2 * (i + j) ∧
+      Smaller (convergent (repeat12 i ++ repeat21 j)) (convergent as)) := by
+  rcases admissible_frontier_eq as h with ⟨k, hk, hs, -⟩ | ⟨i, j, hij, hs, -⟩
+  · exact Or.inl ⟨k, hk, hs⟩
+  · exact Or.inr ⟨i, j, hij, hs⟩
 
 end Lsbgcd

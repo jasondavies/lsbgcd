@@ -26,6 +26,12 @@ decreasing_by exact Nat.mod_lt _ (Nat.pos_of_ne_zero hv)
 @[simp] theorem euclidSteps_zero (u : ℕ) : euclidSteps u 0 = 0 := by
   rw [euclidSteps, dite_eq_left rfl]
 
+/-- A positive division count forces a positive second input. -/
+theorem pos_of_euclidSteps_pos {u v : ℕ} (h : 0 < euclidSteps u v) : 0 < v := by
+  rcases Nat.eq_zero_or_pos v with rfl | hv
+  · simp at h
+  · exact hv
+
 theorem euclidSteps_same {u : ℕ} (hu : 0 < u) : euclidSteps u u = 1 := by
   rw [euclidSteps, dite_eq_right (ne_of_gt hu), Nat.mod_self, euclidSteps_zero]
 
@@ -52,7 +58,7 @@ theorem euclid_fibonacci_lower (u v : ℕ) (hv : 0 < v) (hvu : v < u) :
 termination_by v
 decreasing_by exact Nat.mod_lt _ hv
 
-private theorem fib_strict_successor (n : ℕ) : Nat.fib (n + 2) < Nat.fib (n + 3) := by
+private theorem fib_add_two_lt_fib_add_three (n : ℕ) : Nat.fib (n + 2) < Nat.fib (n + 3) := by
   have hp : 0 < Nat.fib (n + 1) := Nat.fib_pos.mpr (by omega)
   have he : Nat.fib (n + 3) = Nat.fib (n + 1) + Nat.fib (n + 2) :=
     Nat.fib_add_two
@@ -68,7 +74,7 @@ theorem euclid_fibonacci_steps (n : ℕ) :
     have hm : Nat.fib (n + 4) % Nat.fib (n + 3) = Nat.fib (n + 2) := by
       have he : Nat.fib (n + 4) = Nat.fib (n + 2) + Nat.fib (n + 3) :=
         Nat.fib_add_two
-      rw [he, Nat.add_mod_right, Nat.mod_eq_of_lt (fib_strict_successor n)]
+      rw [he, Nat.add_mod_right, Nat.mod_eq_of_lt (fib_add_two_lt_fib_add_three n)]
     change euclidSteps (Nat.fib (n + 4)) (Nat.fib (n + 3)) = n + 2
     rw [euclidSteps, dite_eq_right (ne_of_gt hp), hm, ih]
 
@@ -84,11 +90,7 @@ theorem euclid_fibonacci_minimal {n : ℕ} (hn : 2 ≤ n) :
       show n - 1 + 1 = n by omega] at h
     exact h
   · intro u v hu hvu hc
-    have hv : 0 < v := by
-      by_contra h
-      have hz : v = 0 := by omega
-      rw [hz, euclidSteps_zero] at hc
-      omega
+    have hv : 0 < v := pos_of_euclidSteps_pos (u := u) (by omega)
     have hstrict : v < u := by
       by_contra h
       have he : u = v := by omega
@@ -106,11 +108,7 @@ theorem euclid_one_minimal : euclidSteps 1 1 = 1 ∧
   constructor
   · exact euclidSteps_same (by decide)
   · intro u v hu hvu hc
-    have hv : 0 < v := by
-      by_contra h
-      have hz : v = 0 := by omega
-      rw [hz, euclidSteps_zero] at hc
-      omega
+    have hv : 0 < v := pos_of_euclidSteps_pos (u := u) (by omega)
     unfold LexLE
     omega
 
@@ -161,16 +159,21 @@ theorem euclidSteps_le_log {u v : ℕ} (hu : 0 < u) (hvu : v ≤ u) :
   have hb := (le_div_iff₀ hlog).2 hl
   linarith
 
+/-- The paper's base-two Euclidean coefficient `1 / log₂ φ`, in natural logarithms. -/
+theorem one_div_logb_goldenRatio :
+    1 / Real.logb 2 Real.goldenRatio = Real.log 2 / Real.log Real.goldenRatio := by
+  have hp := (Real.log_pos Real.one_lt_goldenRatio).ne'
+  rw [Real.logb]
+  field_simp
+
 /-- The Euclidean bound written with the paper's binary logarithm coefficient. -/
-theorem euclidSteps_le_log2 {u v : ℕ} (hu : 0 < u) (hvu : v ≤ u) :
+theorem euclidSteps_le_logb {u v : ℕ} (hu : 0 < u) (hvu : v ≤ u) :
     (euclidSteps u v : ℝ) ≤
       1 / Real.logb 2 Real.goldenRatio * Real.logb 2 u + 1 := by
-  have h2 : Real.log 2 ≠ 0 := ne_of_gt (Real.log_pos (by norm_num))
-  have hp : Real.log Real.goldenRatio ≠ 0 :=
-    ne_of_gt (Real.log_pos Real.one_lt_goldenRatio)
+  have h2 := log_two_pos.ne'
   have he : 1 / Real.logb 2 Real.goldenRatio * Real.logb 2 u =
       Real.log u / Real.log Real.goldenRatio := by
-    unfold Real.logb
+    rw [one_div_logb_goldenRatio, Real.logb]
     field_simp
   rw [he]
   exact euclidSteps_le_log hu hvu
@@ -179,21 +182,20 @@ theorem euclidSteps_le_log2 {u v : ℕ} (hu : 0 < u) (hvu : v ≤ u) :
 noncomputable def iterationCoefficientRatio : ℝ :=
   (1 / Real.logb 2 (Real.sqrt alpha)) / (1 / Real.logb 2 Real.goldenRatio)
 
+/-- The coefficient ratio in natural logarithms. -/
 theorem iterationCoefficientRatio_eq :
     iterationCoefficientRatio = 2 * Real.log Real.goldenRatio / Real.log alpha := by
-  have ha : 0 < alpha := by linarith [characteristic_root_bounds.1]
-  have hal : Real.log alpha ≠ 0 :=
-    ne_of_gt (Real.log_pos (by linarith [characteristic_root_bounds.1]))
-  have h2 : Real.log 2 ≠ 0 := ne_of_gt (Real.log_pos (by norm_num))
-  have hp : Real.log Real.goldenRatio ≠ 0 :=
-    ne_of_gt (Real.log_pos Real.one_lt_goldenRatio)
-  unfold iterationCoefficientRatio Real.logb
-  rw [Real.log_sqrt (le_of_lt ha)]
+  have hal := log_alpha_pos.ne'
+  have h2 := log_two_pos.ne'
+  have hp := (Real.log_pos Real.one_lt_goldenRatio).ne'
+  rw [iterationCoefficientRatio, one_div_logb_sqrt_alpha, one_div_logb_goldenRatio]
   field_simp
 
-private theorem characteristic_rational_bounds :
-    (3732 / 1000 : ℝ) ≤ alpha ∧ alpha ≤ 3733 / 1000 ∧
-      (1618 / 1000 : ℝ) ≤ Real.goldenRatio ∧ Real.goldenRatio ≤ 1619 / 1000 := by
+/-- Five-digit rational enclosures of `alpha = 2 + √3` and the golden ratio,
+used for the decimal certificates in §7. -/
+theorem characteristic_rational_bounds :
+    (373205 / 100000 : ℝ) ≤ alpha ∧ alpha ≤ 373206 / 100000 ∧
+      (161803 / 100000 : ℝ) ≤ Real.goldenRatio ∧ Real.goldenRatio ≤ 161804 / 100000 := by
   have hs := Real.sq_sqrt (by norm_num : (0 : ℝ) ≤ 3)
   have hs0 := Real.sqrt_nonneg (3 : ℝ)
   have hp := Real.goldenRatio_sq
@@ -207,30 +209,29 @@ private theorem characteristic_rational_bounds :
 
 /-- Rigorous rational enclosure of the ratio, justifying the paper's
 approximately 27% reduction in the worst-case leading iteration coefficient.
-The only numerical calculations here are exact rational powers. -/
+The only numerical calculations are exact rational powers: `alpha ^ 19 < φ ^ 52`
+gives the ratio `2 log φ / log alpha > 38 / 52`, and `φ ^ 41 < alpha ^ 15` gives
+the ratio `< 30 / 41`. -/
 theorem iterationCoefficientRatio_bounds :
     (730 / 1000 : ℝ) < iterationCoefficientRatio ∧
       iterationCoefficientRatio < 732 / 1000 := by
   obtain ⟨hal, hau, hpl, hpu⟩ := characteristic_rational_bounds
-  have ha0 : 0 < alpha := by linarith
   have hp0 := Real.goldenRatio_pos
-  have hlo : alpha ^ 73 < Real.goldenRatio ^ 200 := by
+  have hlo : alpha ^ 19 < Real.goldenRatio ^ 52 := by
     calc
-      alpha ^ 73 ≤ (3733 / 1000 : ℝ) ^ 73 := pow_le_pow_left₀ (le_of_lt ha0) hau _
-      _ < (1618 / 1000 : ℝ) ^ 200 := by norm_num
-      _ ≤ Real.goldenRatio ^ 200 := pow_le_pow_left₀ (by norm_num) hpl _
-  have hhi : Real.goldenRatio ^ 500 < alpha ^ 183 := by
+      alpha ^ 19 ≤ (373206 / 100000 : ℝ) ^ 19 := pow_le_pow_left₀ alpha_pos.le hau _
+      _ < (161803 / 100000 : ℝ) ^ 52 := by norm_num
+      _ ≤ Real.goldenRatio ^ 52 := pow_le_pow_left₀ (by norm_num) hpl _
+  have hhi : Real.goldenRatio ^ 41 < alpha ^ 15 := by
     calc
-      Real.goldenRatio ^ 500 ≤ (1619 / 1000 : ℝ) ^ 500 :=
-        pow_le_pow_left₀ (le_of_lt hp0) hpu _
-      _ < (3732 / 1000 : ℝ) ^ 183 := by
-        set_option exponentiation.threshold 500 in norm_num
-      _ ≤ alpha ^ 183 := pow_le_pow_left₀ (by norm_num) hal _
-  have hll := Real.log_lt_log (by positivity : 0 < alpha ^ 73) hlo
-  have hhl := Real.log_lt_log (by positivity : 0 < Real.goldenRatio ^ 500) hhi
+      Real.goldenRatio ^ 41 ≤ (161804 / 100000 : ℝ) ^ 41 :=
+        pow_le_pow_left₀ hp0.le hpu _
+      _ < (373205 / 100000 : ℝ) ^ 15 := by norm_num
+      _ ≤ alpha ^ 15 := pow_le_pow_left₀ (by norm_num) hal _
+  have hll := Real.log_lt_log (pow_pos alpha_pos _) hlo
+  have hhl := Real.log_lt_log (pow_pos hp0 _) hhi
   rw [Real.log_pow, Real.log_pow] at hll hhl
-  have hlog : 0 < Real.log alpha :=
-    Real.log_pos (by linarith [characteristic_root_bounds.1])
+  have hlog := log_alpha_pos
   rw [iterationCoefficientRatio_eq]
   constructor
   · apply (lt_div_iff₀ hlog).2

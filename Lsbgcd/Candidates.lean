@@ -15,10 +15,12 @@ is proved in Minimality.lean.
 -/
 namespace Lsbgcd
 
+/-- The alternating word `(12)ⁿ`. -/
 def repeat12 : ℕ → List ℕ
   | 0 => []
   | n + 1 => 1 :: 2 :: repeat12 n
 
+/-- The alternating word `(21)ⁿ`. -/
 def repeat21 : ℕ → List ℕ
   | 0 => []
   | n + 1 => 2 :: 1 :: repeat21 n
@@ -52,12 +54,56 @@ theorem admissible_repeat21 (n : ℕ) : Admissible (repeat21 n) := by
 @[simp] theorem length_repeat21 (n : ℕ) : (repeat21 n).length = 2 * n := by
   induction n <;> simp_all [repeat21]; omega
 
+theorem repeat21_add (i j : ℕ) : repeat21 (i + j) = repeat21 i ++ repeat21 j := by
+  induction i with
+  | zero => simp [repeat21]
+  | succ i ih => simpa [repeat21, Nat.succ_add] using congrArg (fun as => 2 :: 1 :: as) ih
+
+theorem repeat12_one (n : ℕ) : repeat12 n ++ [1] = 1 :: repeat21 n := by
+  induction n with
+  | zero => rfl
+  | succ n ih => simp [repeat12, repeat21, ih]
+
+/-- The even-length words `(12)ⁱ(21)ʲ`, which dominate every admissible word
+of even length (Frontier.lean). -/
+def blockWord (i j : ℕ) : List ℕ := repeat12 i ++ repeat21 j
+
+/-- The word selected in §6 for length `n`: `(12)ᵏ1` for `n = 2k + 1`,
+`(12)ᵏ(21)ᵏ` for `n = 4k`, and `(12)ᵏ(21)ᵏ⁺¹` for `n = 4k + 2`. -/
 def candidateWord (n : ℕ) : List ℕ :=
   if n % 2 = 1 then repeat12 (n / 2) ++ [1]
-  else if n % 4 = 0 then repeat12 (n / 4) ++ repeat21 (n / 4)
-  else repeat12 (n / 4) ++ repeat21 (n / 4 + 1)
+  else if n % 4 = 0 then blockWord (n / 4) (n / 4)
+  else blockWord (n / 4) (n / 4 + 1)
 
+/-- The paper's `(xₙ, yₙ)`, constructed from `candidateWord n`; `isWorstCase_iff`
+proves that it is the lexicographically least input taking `n` iterations. -/
 def candidate (n : ℕ) : ℕ × ℕ := convergent (candidateWord n)
+
+theorem repeat12_reverse (n : ℕ) : (repeat12 n).reverse = repeat21 n := by
+  induction n with
+  | zero => rfl
+  | succ n ih =>
+    simp only [repeat12, List.reverse_cons, ih]
+    have h := repeat21_add n 1
+    simpa [repeat21, List.append_assoc] using h.symm
+
+theorem repeat21_reverse (n : ℕ) : (repeat21 n).reverse = repeat12 n := by
+  have h := congrArg List.reverse (repeat12_reverse n)
+  simpa using h.symm
+
+theorem blockWord_reverse (i j : ℕ) : (blockWord i j).reverse = blockWord j i := by
+  simp [blockWord, List.reverse_append, repeat12_reverse, repeat21_reverse]
+
+theorem candidateWord_two_mul_add_one (n : ℕ) :
+    candidateWord (2 * n + 1) = repeat12 n ++ [1] := by
+  simp [candidateWord, Nat.add_mod, Nat.add_div]
+
+theorem candidateWord_four_mul (n : ℕ) : candidateWord (4 * n) = blockWord n n := by
+  simp [candidateWord, Nat.mul_mod]
+
+theorem candidateWord_four_mul_add_two (n : ℕ) :
+    candidateWord (4 * n + 2) = blockWord n (n + 1) := by
+  simp [candidateWord, Nat.add_div, Nat.add_mod, Nat.mul_mod]
 
 theorem candidateWord_admissible (n : ℕ) : Admissible (candidateWord n) := by
   unfold candidateWord
@@ -68,7 +114,7 @@ theorem candidateWord_admissible (n : ℕ) : Admissible (candidateWord n) := by
 
 theorem candidateWord_length (n : ℕ) : (candidateWord n).length = n := by
   unfold candidateWord
-  split_ifs with h1 h2 <;> simp only [List.length_append, length_repeat12,
+  split_ifs with h1 h2 <;> simp only [blockWord, List.length_append, length_repeat12,
     length_repeat21, List.length_cons, List.length_nil] <;> omega
 
 /-- The candidate inputs really require exactly n iterations, for all n. -/
@@ -84,35 +130,33 @@ theorem candidate_coprime (n : ℕ) : Nat.Coprime (candidate n).1 (candidate n).
 
 theorem wordMatrix_repeat12 (n : ℕ) : wordMatrix (repeat12 n) = (m1 * m2) ^ n := by
   induction n with
-  | zero => simp [repeat12, wordMatrix]
+  | zero => simp [repeat12]
   | succ n ih => simp [repeat12, wordMatrix, ih, pow_succ', m1, m2, Matrix.mul_assoc]
 
 theorem wordMatrix_repeat21 (n : ℕ) : wordMatrix (repeat21 n) = (m2 * m1) ^ n := by
   induction n with
-  | zero => simp [repeat21, wordMatrix]
+  | zero => simp [repeat21]
   | succ n ih => simp [repeat21, wordMatrix, ih, pow_succ', m1, m2, Matrix.mul_assoc]
 
 theorem candidate_even_matrix (n : ℕ) :
     (candidate (4 * n)).1 = evenMatrix n 0 0 ∧
       (candidate (4 * n)).2 = evenMatrix n 1 0 := by
-  have hw : candidateWord (4 * n) = repeat12 n ++ repeat21 n := by
-    simp [candidateWord, Nat.mul_mod]
+  have hw := candidateWord_four_mul n
   have h := wordMatrix_first_column (repeat12 n ++ repeat21 n)
   rw [wordMatrix_append, wordMatrix_repeat12, wordMatrix_repeat21, ← evenMatrix_powers] at h
-  simpa [candidate, hw] using And.intro h.1.symm h.2.symm
+  simpa [candidate, hw, blockWord] using And.intro h.1.symm h.2.symm
 
 theorem candidate_offset_matrix (n : ℕ) :
     (candidate (4 * n + 2)).1 = offsetMatrix n 0 0 ∧
       (candidate (4 * n + 2)).2 = offsetMatrix n 1 0 := by
-  have hw : candidateWord (4 * n + 2) = repeat12 n ++ repeat21 (n + 1) := by
-    simp [candidateWord, Nat.add_div, Nat.add_mod, Nat.mul_mod]
+  have hw := candidateWord_four_mul_add_two n
   have h := wordMatrix_first_column (repeat12 n ++ repeat21 (n + 1))
   rw [wordMatrix_append, wordMatrix_repeat12, wordMatrix_repeat21, ← offsetMatrix_powers] at h
-  simpa [candidate, hw] using And.intro h.1.symm h.2.symm
+  simpa [candidate, hw, blockWord] using And.intro h.1.symm h.2.symm
 
 theorem candidate_odd_word (n : ℕ) :
     candidate (2 * n + 1) = convergent (repeat12 n ++ [1]) := by
-  simp [candidate, candidateWord, Nat.add_mod, Nat.add_div]
+  rw [candidate, candidateWord_two_mul_add_one]
 
 /-- The second-order recurrence in §6, case (i), written without subtraction. -/
 theorem candidate_odd_recurrence (n : ℕ) :

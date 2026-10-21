@@ -3,6 +3,7 @@ module
 public import Lsbgcd.Frontier
 public import Lsbgcd.Balancing
 public import Lsbgcd.Reduction
+public import Lsbgcd.ClosedForms
 
 @[expose] public section
 
@@ -25,13 +26,23 @@ theorem admissible_minimality : AdmissibleMinimality := by
   · rw [hlen]
     exact lexLE_trans (blockWord_balanced i j) (smaller_lex hs)
 
-/-- The candidates are the lexicographically least actual inputs. -/
-theorem candidate_minimality : CandidateMinimality :=
-  minimality_of_reduction reduction_to_admissible admissible_minimality
+/-- The candidates are the lexicographically least actual inputs: every input
+reduces to an admissible word of the same length (`reduction_to_admissible`),
+which the candidate word of that length dominates (`admissible_minimality`). -/
+theorem candidate_minimality : CandidateMinimality := by
+  intro n
+  refine ⟨(candidate_positive_ordered n).1, (candidate_positive_ordered n).2,
+    candidate_iterations n, ?_⟩
+  intro u v hu hv hn
+  obtain ⟨as, ha, hlen, hle⟩ := reduction_to_admissible u v hu hv
+  have hm := admissible_minimality as ha
+  rw [hlen, hn] at hm
+  exact lexLE_trans hm hle
 
 /-- Theorem 1.1, including minimality, the order-16 recurrence, and all
 six closed forms, with no outstanding hypotheses. -/
-theorem theorem1_1 : MainTheorem := main_of_admissible_minimality admissible_minimality
+theorem theorem1_1 : MainTheorem :=
+  ⟨candidate_minimality, candidate_x_order16, candidate_y_order16, candidate_closed_forms⟩
 
 /-- The least input is unique, so the construction agrees with the
 paper's description of `(x_n,y_n)` by its minimising property. -/
@@ -51,26 +62,9 @@ theorem candidate_numerator_le {as : List ℕ} (ha : Admissible as) :
   have h := admissible_minimality as ha
   rcases h with h | ⟨h, _⟩ <;> unfold continuant <;> omega
 
-theorem repeat12_reverse (n : ℕ) : (repeat12 n).reverse = repeat21 n := by
-  induction n with
-  | zero => rfl
-  | succ n ih =>
-    simp only [repeat12, List.reverse_cons, ih]
-    have h := repeat21_add n 1
-    simpa [repeat21, List.append_assoc] using h.symm
-
-theorem repeat21_reverse (n : ℕ) : (repeat21 n).reverse = repeat12 n := by
-  have h := congrArg List.reverse (repeat12_reverse n)
-  simpa using h.symm
-
-theorem blockWord_reverse (i j : ℕ) : (blockWord i j).reverse = blockWord j i := by
-  simp [blockWord, List.reverse_append, repeat12_reverse, repeat21_reverse]
-
 private theorem candidate_offset_wordMatrix (n : ℕ) :
     wordMatrix (candidateWord (4 * n + 2)) = offsetMatrix n := by
-  have hw : candidateWord (4 * n + 2) = blockWord n (n + 1) := by
-    simp [candidateWord, blockWord, Nat.add_mod, Nat.mul_mod, Nat.add_div]
-  rw [hw, blockWord_matrix, offsetMatrix_powers]
+  rw [candidateWord_four_mul_add_two, blockWord_matrix, offsetMatrix_powers]
   rfl
 
 /-- The two descriptions in Theorem 5.2 are distinct exactly for lengths
@@ -93,8 +87,7 @@ theorem candidateWord_reverse_eq_iff (n : ℕ) :
     · simp only [List.reverse_append, List.reverse_cons, List.reverse_nil,
         List.nil_append, repeat12_reverse]
       exact (repeat12_one _).symm
-    · change (blockWord (n / 4) (n / 4)).reverse = blockWord (n / 4) (n / 4)
-      exact blockWord_reverse _ _
+    · exact blockWord_reverse _ _
     · omega
 
 /-- Equality characterisation of the minimal continuant in Theorem 5.2.
@@ -108,8 +101,7 @@ theorem minimal_continuant_eq_iff (as : List ℕ) (ha : Admissible as) :
     rcases admissible_frontier_eq as ha with ⟨k, hlen, hs, hw⟩ | ⟨i, j, hlen, hs, hw⟩
     · left
       have hc : candidateWord as.length = repeat12 k ++ [1] := by
-        rw [hlen]
-        simp [candidateWord, Nat.add_mod, Nat.add_div]
+        rw [hlen, candidateWord_two_mul_add_one]
       rw [hc]
       apply hw
       simpa only [continuant, candidate, hc] using he.symm
@@ -132,20 +124,17 @@ theorem minimal_continuant_eq_iff (as : List ℕ) (ha : Admissible as) :
       rcases hc with hc | hc | hc
       · subst j
         left
-        rw [hlen, has]
-        simp [candidateWord, show 2 * (i + i) = 4 * i by omega, Nat.mul_mod]
+        rw [hlen, has, show 2 * (i + i) = 4 * i by omega, candidateWord_four_mul]
+        rfl
       · subst j
         left
-        rw [hlen, has]
-        simp [candidateWord, show 2 * (i + (i + 1)) = 4 * i + 2 by omega,
-          Nat.add_mod, Nat.mul_mod, Nat.add_div]
+        rw [hlen, has, show 2 * (i + (i + 1)) = 4 * i + 2 by omega,
+          candidateWord_four_mul_add_two]
+        rfl
       · subst i
         right
-        rw [hlen, has]
-        have hwc : candidateWord (2 * (j + 1 + j)) = blockWord j (j + 1) := by
-          simp [candidateWord, blockWord, show 2 * (j + 1 + j) = 4 * j + 2 by omega,
-            Nat.add_mod, Nat.mul_mod, Nat.add_div]
-        rw [hwc, blockWord_reverse]
+        rw [hlen, has, show 2 * (j + 1 + j) = 4 * j + 2 by omega,
+          candidateWord_four_mul_add_two, blockWord_reverse]
         rfl
   · rintro (h | h)
     · change continuant as = continuant (candidateWord as.length)

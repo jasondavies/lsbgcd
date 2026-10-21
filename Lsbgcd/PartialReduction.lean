@@ -10,15 +10,21 @@ public import Lsbgcd.Validity
 The output pair is retained exactly. Replace zero-exponent unswapped steps
 by A₀ and all other steps by A₁. Corollary 3.4 rules out adjacent A₀ steps,
 so Lemma 3.5 proves that the resulting partial computation is valid.
+
+Reduction.lean proves the special case needed for Theorem 1.1 directly; this
+module is the paper's general statement.
 -/
 namespace Lsbgcd
 
+/-- Undo a partial computation, listed in inverse execution order. -/
 def inverseComputation : List Transformation → ℕ × ℕ → ℕ × ℕ
   | [], p => p
   | s :: ss, p => inverseComputation ss (s.inverse p)
 
 namespace Transformation
 
+/-- The exponent of the A-step replacing a step in Theorem 4.3: `0` for an
+unswapped zero-exponent step, `1` otherwise. -/
 def reducedExponent : Transformation → ℕ
   | .A e | .B e => if e = 0 then 0 else 1
   | .IA _ | .IB _ => 1

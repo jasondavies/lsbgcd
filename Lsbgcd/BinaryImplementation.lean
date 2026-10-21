@@ -76,6 +76,10 @@ def binaryStep (u v : ℕ) : ℕ × ℕ :=
   let t := min (u - 2 ^ e * v) (2 ^ (e + 1) * v - u)
   (max v t, min v t)
 
+theorem binaryStep_ordered (u v : ℕ) : (binaryStep u v).2 ≤ (binaryStep u v).1 :=
+  le_trans (min_le_left _ _) (le_max_left _ _)
+
+/-- The division-free step agrees with the specified loop step. -/
 theorem binaryStep_eq_step {u v : ℕ} (hv : 0 < v) (hvu : v ≤ u) :
     binaryStep u v = step u v := by
   simp only [binaryStep, shiftByLengths_eq_shift hv hvu, step, remainder]

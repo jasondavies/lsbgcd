@@ -21,7 +21,8 @@ theorem sandwich_entries (m : Mat) :
       4 * m 0 0 + 2 * m 0 1 + 2 * m 1 0 + m 1 1] := by
   ext i j
   fin_cases i <;> fin_cases j <;>
-    simp [sandwich, m1, m2, digitMatrix, Matrix.mul_apply, Matrix.vecMul, dotProduct, Fin.sum_univ_two] <;> ring
+    simp [sandwich, m1, m2, digitMatrix, Matrix.mul_apply, Matrix.vecMul, dotProduct,
+      Fin.sum_univ_two] <;> ring
 
 /-- The cubic identity computed in §6, valid for every starting matrix. -/
 theorem sandwich_cubic (m : Mat) :
