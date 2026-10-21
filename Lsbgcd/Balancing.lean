@@ -154,7 +154,7 @@ private theorem blockWord_balanced_ordered (i d : ℕ) :
 /-- For a fixed total number of alternating blocks, the paper's candidate
     is minimal, including the denominator tie-break when the total is odd. -/
 theorem blockWord_balanced (i j : ℕ) :
-    LexLE (candidate (2 * (i + j))) (convergent (repeat12 i ++ repeat21 j)) := by
+    LexLE (candidate (2 * (i + j))) (convergent (blockWord i j)) := by
   rcases le_total i j with h | h
   · obtain ⟨d, rfl⟩ := Nat.exists_eq_add_of_le h
     have hb := blockWord_balanced_ordered i d

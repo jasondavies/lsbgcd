@@ -130,13 +130,13 @@ private theorem square_repeat12 (k : ℕ) (as : List ℕ) :
 /-- Exact cost of replacing an initial `(21)^i` by `(12)^i`.
 The suffix `(21)^j` has convergent `(2d+t,d)`, where `t` is positive. -/
 private theorem square_block_difference (i j : ℕ) :
-    squaredSize (convergent (repeat12 i ++ repeat21 j)) =
+    squaredSize (convergent (blockWord i j)) =
       squaredSize (convergent (repeat21 (i + j))) +
         (squareCoeff i).1 ^ 2 *
           ((squareCoeff j).1 ^ 2 +
             8 * (squareCoeff j).1 * (squareCoeff j).2 +
             3 * (squareCoeff j).2 ^ 2) := by
-  rw [repeat21_add, square_repeat12, square_repeat21]
+  rw [blockWord, repeat21_add, square_repeat12, square_repeat21]
   have hs := square_repeat21 j []
   simp only [List.append_nil, convergent, mul_one, mul_zero, add_zero] at hs
   rw [hs]
@@ -147,13 +147,13 @@ private theorem square_block_difference (i j : ℕ) :
 has the least squared size. -/
 theorem square_block_minimal (i j : ℕ) :
     squaredSize (convergent (repeat21 (i + j))) ≤
-      squaredSize (convergent (repeat12 i ++ repeat21 j)) := by
+      squaredSize (convergent (blockWord i j)) := by
   rw [square_block_difference]
   omega
 
 /-- The alternating word is the only minimiser in the family `(12)^i (21)^j`. -/
 theorem square_block_eq_iff (i j : ℕ) :
-    squaredSize (convergent (repeat12 i ++ repeat21 j)) =
+    squaredSize (convergent (blockWord i j)) =
       squaredSize (convergent (repeat21 (i + j))) ↔ i = 0 := by
   rw [square_block_difference]
   have hi := squareCoeff_positive i
@@ -184,7 +184,7 @@ theorem admissible_squaredSize_minimal {as : List ℕ} (h : Admissible as) :
       (admissible_convergent (admissible_repeat12_append (as := [1]) k (Or.inl rfl))).2 hs
   · rw [hij, squareCandidate, squareWord_even]
     exact (square_block_minimal i j).trans (smaller_squaredSize
-      (admissible_convergent (admissible_repeat12_append i (admissible_repeat21 j))).2 hs)
+      (admissible_convergent (admissible_blockWord i j)).2 hs)
 
 /-- Equality also determines the convergent, without a tie between inputs. -/
 theorem admissible_squaredSize_eq {as : List ℕ} (h : Admissible as)
@@ -196,11 +196,11 @@ theorem admissible_squaredSize_eq {as : List ℕ} (h : Admissible as)
       (admissible_convergent (admissible_repeat12_append (as := [1]) k (Or.inl rfl))).2 hs he).symm
   · rw [hij, squareCandidate, squareWord_even] at he ⊢
     have hle := smaller_squaredSize
-      (admissible_convergent (admissible_repeat12_append i (admissible_repeat21 j))).2 hs
+      (admissible_convergent (admissible_blockWord i j)).2 hs
     have hmin := square_block_minimal i j
     have hi : i = 0 := (square_block_eq_iff i j).mp (by omega)
     subst i
-    simp only [repeat12, List.nil_append, zero_add] at hs he ⊢
+    simp only [blockWord, repeat12, List.nil_append, zero_add] at hs he ⊢
     exact (smaller_squaredSize_eq (admissible_convergent (admissible_repeat21 j)).2 hs he).symm
 
 /-- The conjectured lower bound holds for every ordered nonzero input. -/

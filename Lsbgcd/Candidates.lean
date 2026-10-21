@@ -105,12 +105,15 @@ theorem candidateWord_four_mul_add_two (n : ℕ) :
     candidateWord (4 * n + 2) = blockWord n (n + 1) := by
   simp [candidateWord, Nat.add_div, Nat.add_mod, Nat.mul_mod]
 
+theorem admissible_blockWord (i j : ℕ) : Admissible (blockWord i j) :=
+  admissible_repeat12_append i (admissible_repeat21 j)
+
 theorem candidateWord_admissible (n : ℕ) : Admissible (candidateWord n) := by
   unfold candidateWord
   split_ifs
   · exact admissible_repeat12_append _ (Or.inl rfl)
-  · exact admissible_repeat12_append _ (admissible_repeat21 _)
-  · exact admissible_repeat12_append _ (admissible_repeat21 _)
+  · exact admissible_blockWord _ _
+  · exact admissible_blockWord _ _
 
 theorem candidateWord_length (n : ℕ) : (candidateWord n).length = n := by
   unfold candidateWord

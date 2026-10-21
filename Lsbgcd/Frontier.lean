@@ -62,22 +62,22 @@ private theorem move_two_strict (n : ℕ) (as : List ℕ)
 /-- The alternating odd word dominates any word `2 (12)^i (21)^j`. -/
 theorem odd_dominates_two_family (i j : ℕ) :
     Smaller (convergent (repeat12 (i + j) ++ [1]))
-      (convergent (2 :: (repeat12 i ++ repeat21 j))) := by
+      (convergent (2 :: (blockWord i j))) := by
   have h := (admissible_convergent (admissible_repeat21 j)).2
   have hm := move_two i (repeat21 j) h
   rw [repeat12_one, repeat21_add]
-  have hw : 2 :: (repeat12 i ++ repeat21 j) = repeat21 i ++ 2 :: repeat21 j :=
+  have hw : 2 :: (blockWord i j) = repeat21 i ++ 2 :: repeat21 j :=
     two_repeat12 i (repeat21 j)
   rw [hw]
   exact hm
 
 theorem odd_dominates_two_family_strict (i j : ℕ) :
     (convergent (repeat12 (i + j) ++ [1])).1 <
-      (convergent (2 :: (repeat12 i ++ repeat21 j))).1 := by
+      (convergent (2 :: (blockWord i j))).1 := by
   have h := (admissible_convergent (admissible_repeat21 j)).1
   have hm := move_two_strict i (repeat21 j) h
   rw [repeat12_one, repeat21_add]
-  have hw : 2 :: (repeat12 i ++ repeat21 j) = repeat21 i ++ 2 :: repeat21 j :=
+  have hw : 2 :: (blockWord i j) = repeat21 i ++ 2 :: repeat21 j :=
     two_repeat12 i (repeat21 j)
   rw [hw]
   exact hm
@@ -118,9 +118,9 @@ theorem admissible_frontier_eq (as : List ℕ) (h : Admissible as) :
       ((convergent (repeat12 k ++ [1])).1 = (convergent as).1 →
         as = repeat12 k ++ [1])) ∨
     (∃ i j, as.length = 2 * (i + j) ∧
-      Smaller (convergent (repeat12 i ++ repeat21 j)) (convergent as) ∧
-      ((convergent (repeat12 i ++ repeat21 j)).1 = (convergent as).1 →
-        as = repeat12 i ++ repeat21 j)) := by
+      Smaller (convergent (blockWord i j)) (convergent as) ∧
+      ((convergent (blockWord i j)).1 = (convergent as).1 →
+        as = blockWord i j)) := by
   cases as with
   | nil => exact Or.inr ⟨0, 0, rfl, smaller_refl _, fun _ => rfl⟩
   | cons a as =>
@@ -144,19 +144,19 @@ theorem admissible_frontier_eq (as : List ℕ) (h : Admissible as) :
           · simp only [List.length_cons]; omega
           · intro heq
             have hw := he (first_eq_of_twelve hs heq)
-            simp [repeat12, hw]
+            simp [blockWord, repeat12, hw]
     · subst a
       have ht := admissible_tail h
       rcases admissible_frontier_eq as ht with ⟨k, hk, hs, he⟩ | ⟨i, j, hij, hs, _⟩
       · refine Or.inr ⟨0, k + 1, ?_, ?_, ?_⟩
         · simp only [List.length_cons]; omega
-        · simpa [repeat12_one, repeat12, repeat21] using prefix_two_smaller hs
+        · simpa [blockWord, repeat12_one, repeat12, repeat21] using prefix_two_smaller hs
         · intro heq
           have heq' : (convergent (2 :: (repeat12 k ++ [1]))).1 =
               (convergent (2 :: as)).1 := by
-            simpa [repeat12_one, repeat12, repeat21] using heq
+            simpa [blockWord, repeat12_one, repeat12, repeat21] using heq
           have hw := he (first_eq_of_two hs heq')
-          simp [hw, repeat12_one, repeat12, repeat21]
+          simp [blockWord, hw, repeat12_one, repeat12, repeat21]
       · refine Or.inl ⟨i + j, ?_,
           smaller_trans (odd_dominates_two_family i j) (prefix_two_smaller hs), ?_⟩
         · simp only [List.length_cons]; omega
@@ -172,7 +172,7 @@ theorem admissible_frontier (as : List ℕ) (h : Admissible as) :
     (∃ k, as.length = 2 * k + 1 ∧
       Smaller (convergent (repeat12 k ++ [1])) (convergent as)) ∨
     (∃ i j, as.length = 2 * (i + j) ∧
-      Smaller (convergent (repeat12 i ++ repeat21 j)) (convergent as)) := by
+      Smaller (convergent (blockWord i j)) (convergent as)) := by
   rcases admissible_frontier_eq as h with ⟨k, hk, hs, -⟩ | ⟨i, j, hij, hs, -⟩
   · exact Or.inl ⟨k, hk, hs⟩
   · exact Or.inr ⟨i, j, hij, hs⟩

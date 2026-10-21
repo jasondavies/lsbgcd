@@ -107,9 +107,9 @@ theorem minimal_continuant_eq_iff (as : List ℕ) (ha : Admissible as) :
       simpa only [continuant, candidate, hc] using he.symm
     · have hb := blockWord_balanced i j
       have hnum : (candidate (2 * (i + j))).1 ≤
-          (convergent (repeat12 i ++ repeat21 j)).1 := by
+          (convergent (blockWord i j)).1 := by
         rcases hb with hb | ⟨hb, _⟩ <;> omega
-      have he' : (convergent (repeat12 i ++ repeat21 j)).1 = (convergent as).1 := by
+      have he' : (convergent (blockWord i j)).1 = (convergent as).1 := by
         rw [hlen] at he
         unfold continuant at he
         have hs' := hs.1
@@ -125,17 +125,14 @@ theorem minimal_continuant_eq_iff (as : List ℕ) (ha : Admissible as) :
       · subst j
         left
         rw [hlen, has, show 2 * (i + i) = 4 * i by omega, candidateWord_four_mul]
-        rfl
       · subst j
         left
         rw [hlen, has, show 2 * (i + (i + 1)) = 4 * i + 2 by omega,
           candidateWord_four_mul_add_two]
-        rfl
       · subst i
         right
         rw [hlen, has, show 2 * (j + 1 + j) = 4 * j + 2 by omega,
           candidateWord_four_mul_add_two, blockWord_reverse]
-        rfl
   · rintro (h | h)
     · change continuant as = continuant (candidateWord as.length)
       rw [← h]
