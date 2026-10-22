@@ -22,6 +22,14 @@ uniqueness of the minimising ordered input. See
 `√3`, including convergence and a geometric error bound, is proved in
 [`SqrtThreeContinuedFraction.lean`](Lsbgcd/SqrtThreeContinuedFraction.lean).
 
+## Palomar registration
+
+This formalisation is registered in the [Palomar registry](https://palomar-registry.org/)
+as [`PALOMAR-2026-10-22-000018`, version 1](https://palomar-registry.org/entry?id=PALOMAR-2026-10-22-000018&version=1),
+for commit [`8423f4e`](https://github.com/jasondavies/lsbgcd/commit/8423f4e77e1ab3a13423530151d69a1ef7125510).
+To cite it, give the identifier and the version. Later commits are not covered
+by the registration until they are registered as a new version.
+
 ## Build and verification
 
 The project uses **Lean 4.35.0 / Mathlib v4.35.0**. `lean-toolchain` selects
